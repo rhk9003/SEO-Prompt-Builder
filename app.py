@@ -2,28 +2,30 @@ import streamlit as st
 
 # --- 頁面設定 ---
 st.set_page_config(
-    page_title="SEO Prompt 全覽儀表板",
-    page_icon="📑",
+    page_title="SEO 強效戰略儀表板",
+    page_icon="🚀",
     layout="wide"
 )
 
-# --- 樣式調整 ---
+# --- CSS 樣式優化 ---
 st.markdown("""
 <style>
     .stTextArea textarea {
         font-family: monospace;
+        font-size: 0.9rem;
+    }
+    .block-container {
+        padding-top: 2rem;
+    }
+    h3 {
+        color: #FF4B4B; 
+        font-size: 1.2rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📑 SEO 文章戰略：全流程 Prompt 生成器")
-st.markdown("""
-**使用說明：**
-1. 依照順序在**左側**欄位填入你的資訊（或貼上 AI 上一步的回覆）。
-2. **右側**會即時組裝好 Prompt。
-3. 即使欄位留空，右側也會顯示帶有 `[佔位符]` 的 Prompt，方便你直接複製格式。
-""")
-
+st.title("🚀 SEO 強效戰略：全流程 Prompt 生成器")
+st.caption("基於「強版」SEO 工作流設計，填寫左側資訊，右側自動生成高質量 Prompt。")
 st.divider()
 
 # --- 輔助函式 ---
@@ -33,21 +35,42 @@ def get_value(input_val, placeholder_text):
     return f"[{placeholder_text}]"
 
 # ==========================================
-# Section 1: 產品解析
+# Step 1: 產品解析 (強版)
 # ==========================================
-st.header("Step 1: 產品/計畫解析")
+st.header("✅ Step 1：產品 / 計畫解析")
 col1_s1, col2_s1 = st.columns([1, 1])
 
 with col1_s1:
-    p1_input = st.text_area("在此輸入產品/計畫頁面內容：", height=200, placeholder="貼上你的網站文案、產品介紹或是計畫書內容...")
+    p1_input = st.text_area("Step 1 輸入：產品/計畫內容", height=200, placeholder="請貼上官網內容、產品白皮書或計畫說明...")
 
 with col2_s1:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p1_content = get_value(p1_input, "請在此處貼上您的產品/計畫內容")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    p1_content = get_value(p1_input, "內容貼在這裡")
     
-    prompt1 = f"""幫我解析，這個計畫/產品頁中，提供了什麼?解決了什麼問題?
+    prompt1 = f"""請根據我提供的產品/計畫內容，進行條列式解析。
 
-內容如下：
+請依照以下格式輸出：
+
+1. **一句話總結（What is it）**
+   - 用最精準的一句話描述產品/計畫是什麼。
+
+2. **目標客群（Target User）**
+   - 列出 1–2 類主要客群
+   - 若有次要客群也一併列出。
+
+3. **核心價值主張（Value Proposition）**
+   - 列出 3–5 個最核心的價值
+   - 每點需是明確的使用者利益。
+
+4. **使用者痛點（Pain Points）**
+   - 明確列出這個產品/計畫要解決的問題。
+
+5. **目前內容說明的缺口（Information Gaps）**
+   - 依照資訊架構角度，指出頁面可能沒講清楚或需要補強的地方。
+
+---
+
+以下是產品/計畫內容：
 {p1_content}"""
     
     st.code(prompt1, language="markdown")
@@ -55,165 +78,228 @@ with col2_s1:
 st.divider()
 
 # ==========================================
-# Section 2: 設定目標與主題發想
+# Step 2: 任務目標 -> 主題發想 (強版)
 # ==========================================
-st.header("Step 2: 設定目標 & 主題發想")
+st.header("✅ Step 2：任務目標 → 主題發想")
 col1_s2, col2_s2 = st.columns([1, 1])
 
 with col1_s2:
-    p2_input = st.text_area("在此輸入 SEO 任務目標：", height=150, placeholder="例如：我想讓找『自動化行銷』的中小企業主看到這篇文章...")
+    p2_input = st.text_area("Step 2 輸入：SEO 任務目標", height=150, placeholder="例如：針對中小企業主，建立品牌權威並引導試用註冊...")
 
 with col2_s2:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p2_goal = get_value(p2_input, "請在此處描述您的 SEO 任務目標")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    p2_goal = get_value(p2_input, "任務目標")
     
-    prompt2 = f"""現在我有個任務目標，我要撰寫一篇SEO為目的的文章，利用搜尋結果達成以下目的:
-
+    prompt2 = f"""以下是我這篇 SEO 文章的任務目標：
 {p2_goal}
 
-為了這個目的，你認為我選關鍵字該鎖定哪些主題?"""
+請根據這個目標，產出 **10–20 個可操作的主題方向**（Topic Clusters），並以表格方式呈現：
+
+| 主題方向（Topic） | 関鍵字類型（核心/長尾/商業/資訊） | 搜尋意圖類型（資訊型/商業型/比較型/交易型） | 註解（為什麼適合此目標） |
+
+請確保主題方向：
+- 與任務目標高度相關
+- 涵蓋資訊意圖與商業意圖
+- 主題之間不重複"""
     
     st.code(prompt2, language="markdown")
 
 st.divider()
 
 # ==========================================
-# Section 3: 核心關鍵字篩選
+# Step 3: 核心關鍵字篩選 (強版)
 # ==========================================
-st.header("Step 3: 核心關鍵字篩選")
+st.header("✅ Step 3：核心關鍵字篩選")
 col1_s3, col2_s3 = st.columns([1, 1])
 
 with col1_s3:
-    p3_input = st.text_area("在此貼上 AI (在 Step 2) 建議的關鍵字/主題清單：", height=150, placeholder="貼上 AI 剛剛產生的主題列表...")
+    p3_input = st.text_area("Step 3 輸入：AI 產出的主題清單", height=150, placeholder="貼上 Step 2 表格中的主題方向...")
 
 with col2_s3:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p3_keywords_context = get_value(p3_input, "請在此處貼上 AI 建議的關鍵字主題清單")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    p3_list = get_value(p3_input, "清單內容")
     
-    prompt3 = f"""根據這些關鍵字，你認為哪些字最適合作為這篇文章操作的核心關鍵字
+    prompt3 = f"""以下是你提供的主題/關鍵字清單：
+{p3_list}
 
-參考清單：
-{p3_keywords_context}"""
+請從中挑選適合 **本篇文章操作的核心關鍵字**（1–3 個）。
+
+請依照下列格式輸出：
+
+1. **核心關鍵字（Primary Keyword）**
+   - 1–3 個，並附上選擇理由
+
+2. **次要關鍵字（Secondary Keywords）**
+   - 5–8 個，用於文章內自然覆蓋
+
+3. **補充關鍵字（Supporting Keywords）**
+   - 3–5 個，用於擴充內容深度
+
+請附上：
+- 上述分類的理由
+- 這組關鍵字策略的 SEO 操作邏輯"""
     
     st.code(prompt3, language="markdown")
 
 st.divider()
 
 # ==========================================
-# Section 4: 搜尋意圖深度研究
+# Step 4: 搜尋意圖 Deep Research (強版)
 # ==========================================
-st.header("Step 4: 搜尋意圖 Deep Research")
+st.header("✅ Step 4：搜尋意圖 Deep Research")
 col1_s4, col2_s4 = st.columns([1, 1])
 
 with col1_s4:
-    p4_input = st.text_area("在此輸入決定要操作的「核心關鍵字」：", height=150, placeholder="例如：\n關鍵字A\n關鍵字B")
+    p4_input = st.text_area("Step 4 輸入：確認的核心關鍵字", height=150, placeholder="例如：\n自動化記帳\n雲端會計軟體推薦")
 
 with col2_s4:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p4_keywords = get_value(p4_input, "請在此處輸入您選定的核心關鍵字清單")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    p4_keywords = get_value(p4_input, "核心關鍵字")
     
-    prompt4 = f"""幫我針對下列關鍵字進行研究(deep research)
-我需要知道的事情有，這些關鍵字在搜尋結果中，排名前兩頁的搜尋結果標題都是些什麼?進而幫我推論，搜尋我給的這些字的使用者具有什麼樣的搜尋意圖與資訊需求?
+    prompt4 = f"""請對以下核心關鍵字進行 SERP Deep Research：
+{p4_keywords}
 
-請研究後，幫我彙整每個關鍵字對應的搜尋意圖。
+工作項目：
+1. **模擬這些關鍵字在 Google 前 20 筆結果的標題**
+   - 至少列出 10 個標題樣式
+   - 標記內容形式（教學/比較/心得/官方說明/FAQ/名詞解釋）
 
-關鍵字清單:
-{p4_keywords}"""
+2. **推論搜尋意圖（Search Intent）**
+   - 主要意圖（1 個）
+   - 次要意圖（1–3 個）
+   - 隱性需求（使用者沒有明講但會關心的）
+
+3. **找出市場內容缺口（Content Gap）**
+   - 目前 SERP 沒有但使用者想知道的資訊
+   - 競爭者普遍弱的地方
+
+請以結構化列表形式輸出，並依照每個關鍵字分段整理。"""
     
     st.code(prompt4, language="markdown")
 
 st.divider()
 
 # ==========================================
-# Section 5: 文章標題建議
+# Step 5: 文章標題生成 (強版)
 # ==========================================
-st.header("Step 5: 文章標題建議")
+st.header("✅ Step 5：文章標題生成")
 col1_s5, col2_s5 = st.columns([1, 1])
 
 with col1_s5:
-    p5_input = st.text_area("在此貼上 AI (在 Step 4) 分析的搜尋意圖/資訊需求：", height=150, placeholder="貼上 AI 分析的意圖結果，幫助它生成更精準的標題...")
+    p5_input = st.text_area("Step 5 輸入：搜尋意圖分析結果", height=150, placeholder="貼上 Step 4 的意圖分析與缺口分析...")
 
 with col2_s5:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p5_intent = get_value(p5_input, "請在此處貼上搜尋意圖分析結果")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    p5_intent = get_value(p5_input, "搜尋意圖")
     
-    prompt5 = f"""請幫我根據我給的資訊/搜尋意圖，給我這篇文章能符合搜尋意圖的標題建議清單
+    prompt5 = f"""以下是搜尋意圖分析結果：
+{p5_intent}
 
-資訊/搜尋意圖參考：
-{p5_intent}"""
+請根據搜尋意圖，產出 **15–20 個符合 SEO 的文章標題**。
+
+請分成三類輸出：
+
+1. **資訊型（Information Intent）**
+2. **比較型 / 選擇型（Comparison Intent）**
+3. **行動導向型（Transactional / CTA Intent）**
+
+要求：
+- 每個標題需具備點擊動機
+- 儘量融入核心關鍵字
+- 避免過度聳動的標題黨格式"""
     
     st.code(prompt5, language="markdown")
 
 st.divider()
 
 # ==========================================
-# Section 6: 擬定大綱
+# Step 6: 文章大綱 (強版)
 # ==========================================
-st.header("Step 6: 擬定文章大綱")
+st.header("✅ Step 6：文章大綱")
 col1_s6, col2_s6 = st.columns([1, 1])
 
 with col1_s6:
-    p6_input = st.text_input("在此輸入您最終選擇的「文章標題」：", placeholder="例如：如何使用 AI 提升工作效率？")
+    p6_input = st.text_input("Step 6 輸入：最終選擇的標題", placeholder="輸入你選好的那個標題")
 
 with col2_s6:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p6_title = get_value(p6_input, "請在此處填入您選擇的文章標題")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    p6_title = get_value(p6_input, "最終標題")
     
-    prompt6 = f"""我選擇的標題如下，請根據這個標題幫我擬定這篇文章的大綱
-我希望標題能夠都以問題導向呈現。
+    prompt6 = f"""以下是我選擇的文章標題：
+{p6_title}
 
-文章標題: {p6_title}"""
+請根據這個標題，產出完整的大綱。
+
+格式要求：
+
+1. **整體結構** - H1：文章標題  
+   - H2：主節點 5–7 個  
+   - H3：各 H2 下的子節點 2–4 個  
+
+2. **每個 H2 必須回答一個「使用者問題」** - 這些問題需與搜尋意圖一致  
+   - 問題需明確、可被回答  
+
+3. **大綱下方附上「文章邏輯解說」** - 說明內容如何符合搜尋意圖  
+   - 說明內容如何支援 SEO（覆蓋哪些意圖與關鍵字）"""
     
     st.code(prompt6, language="markdown")
 
 st.divider()
 
 # ==========================================
-# Section 7: 撰寫文章內容 (Updated)
+# Step 7: 文章撰寫 + 技術 SEO (強版)
 # ==========================================
-st.header("Step 7: 撰寫文章內容 & 技術 SEO")
+st.header("✅ Step 7：文章撰寫 + 技術 SEO")
 col1_s7, col2_s7 = st.columns([1, 1])
 
 with col1_s7:
-    p7_word_count = st.text_input("文章字數需求：", value="1500字")
-    p7_cta = st.text_input("文章 CTA 連結：", value="https://example.com")
-    p7_outline = st.text_area("在此貼上確認後的「文章大綱」：", height=200, placeholder="貼上 AI 擬定的大綱...")
+    p7_word = st.text_input("文章字數需求：", value="1500字")
+    p7_cta = st.text_input("CTA 連結與文字：", value="免費試用：https://example.com")
+    p7_outline = st.text_area("Step 7 輸入：確認後的大綱", height=200, placeholder="貼上 Step 6 的完整大綱...")
 
 with col2_s7:
-    st.caption("🚀 複製下方的 Prompt 給 AI：")
-    p7_outline_content = get_value(p7_outline, "請在此處貼上文章大綱")
+    st.markdown("### 📋 複製 Prompt 給 AI")
+    # 使用上一步的標題變數，如果沒填則顯示佔位符
+    p7_title_final = get_value(p6_input, "最終標題")
+    p7_outline_final = get_value(p7_outline, "大綱內容")
     
-    # 這裡加入了 SEO 技術優化的指令
-    prompt7 = f"""請幫我根據前面訂好的大鋼與標題，撰寫文章內容
+    prompt7 = f"""請根據以下資訊撰寫文章：
+- 標題：{p7_title_final}
+- 文章字數：{p7_word}
+- CTA 連結：{p7_cta}
+- 大綱：{p7_outline_final}
 
-文章字數需求: {p7_word_count}
-
-文章CTA 連結: {p7_cta}
-
-大綱:
-{p7_outline_content}
+寫作要求：
+1. 語氣專業、清楚但不浮誇  
+2. 避免過度行銷語氣  
+3. 使用真實案例或可操作示例  
+4. 每段落保持結構與邏輯  
+5. 適度融入次要與補充關鍵字  
+6. 內容須明顯回答搜尋意圖  
 
 ---
-【SEO 技術優化需求】
-請在文章內容撰寫完畢後，額外提供以下 SEO 元素，方便我直接上架：
 
-1. **Meta Title (網頁標題)**：
-   - 限制在 60 個字元 (包含標點符號) 以內。
-   - 必須包含核心關鍵字。
-   - 需具備吸引點擊的誘因。
+## 📌 寫完文章後，請額外輸出以下 SEO 元件：
 
-2. **Meta Description (網頁描述)**：
-   - 限制在 160 個字元以內。
-   - 必須包含核心關鍵字。
-   - 結尾必須包含行動呼籲 (CTA)，吸引使用者點擊連結。
+### 1. Meta Title
+- ≤ 60 字元
+- 必須包含核心關鍵字
+- 必須有點擊誘因
 
-3. **Schema Markup 建議**：
-   - 請分析這篇文章的結構，建議 1-2 種最適合的 Schema 類型 (例如: FAQPage, Article, HowTo 等)。
-   - 請簡述選擇該 Schema 的原因。"""
+### 2. Meta Description
+- ≤ 160 字元
+- 必須包含核心關鍵字
+- 結尾須包含 CTA 引導（例如：立即了解 / 點擊查看更多）
+
+### 3. Schema Markup 建議
+請根據本文內容給出最適合的 Schema 類型，並提供：
+- Schema 類型（例如 Article、FAQPage、HowTo）
+- 選擇理由（例如可提高 CTR、SERP 顯示強化等）"""
     
     st.code(prompt7, language="markdown")
 
-# --- 底部控制 ---
+# --- 底部 ---
 st.divider()
-if st.button("🗑️ 清空所有輸入欄位"):
+st.info("💡 提示：此頁面不保存資料，重新整理網頁將會清空所有內容。建議完成一段複製一段。")
+if st.button("🗑️ 清空所有內容"):
     st.rerun()
