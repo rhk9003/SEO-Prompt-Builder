@@ -137,7 +137,6 @@ with col2_s5:
     st.caption("🚀 複製下方的 Prompt 給 AI：")
     p5_intent = get_value(p5_input, "請在此處貼上搜尋意圖分析結果")
     
-    # 這裡已根據需求修改
     prompt5 = f"""請幫我根據我給的資訊/搜尋意圖，給我這篇文章能符合搜尋意圖的標題建議清單
 
 資訊/搜尋意圖參考：
@@ -170,9 +169,9 @@ with col2_s6:
 st.divider()
 
 # ==========================================
-# Section 7: 撰寫文章內容
+# Section 7: 撰寫文章內容 (Updated)
 # ==========================================
-st.header("Step 7: 撰寫文章內容")
+st.header("Step 7: 撰寫文章內容 & 技術 SEO")
 col1_s7, col2_s7 = st.columns([1, 1])
 
 with col1_s7:
@@ -184,6 +183,7 @@ with col2_s7:
     st.caption("🚀 複製下方的 Prompt 給 AI：")
     p7_outline_content = get_value(p7_outline, "請在此處貼上文章大綱")
     
+    # 這裡加入了 SEO 技術優化的指令
     prompt7 = f"""請幫我根據前面訂好的大鋼與標題，撰寫文章內容
 
 文章字數需求: {p7_word_count}
@@ -191,7 +191,25 @@ with col2_s7:
 文章CTA 連結: {p7_cta}
 
 大綱:
-{p7_outline_content}"""
+{p7_outline_content}
+
+---
+【SEO 技術優化需求】
+請在文章內容撰寫完畢後，額外提供以下 SEO 元素，方便我直接上架：
+
+1. **Meta Title (網頁標題)**：
+   - 限制在 60 個字元 (包含標點符號) 以內。
+   - 必須包含核心關鍵字。
+   - 需具備吸引點擊的誘因。
+
+2. **Meta Description (網頁描述)**：
+   - 限制在 160 個字元以內。
+   - 必須包含核心關鍵字。
+   - 結尾必須包含行動呼籲 (CTA)，吸引使用者點擊連結。
+
+3. **Schema Markup 建議**：
+   - 請分析這篇文章的結構，建議 1-2 種最適合的 Schema 類型 (例如: FAQPage, Article, HowTo 等)。
+   - 請簡述選擇該 Schema 的原因。"""
     
     st.code(prompt7, language="markdown")
 
