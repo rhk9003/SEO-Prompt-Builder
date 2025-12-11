@@ -7,37 +7,35 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CSS 優化 ---
+# --- CSS 優化 (針對單頁模式調整) ---
 st.markdown("""
 <style>
     .stTextArea textarea {
         font-family: "Consolas", "Monaco", monospace;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         background-color: #f8f9fa;
         color: #333;
     }
     .main-header {
-        font-size: 2rem;
+        font-size: 1.8rem;
         font-weight: 800;
-        color: #1E3A8A; /* 深藍色 */
-        margin-bottom: 0.5rem;
+        color: #1E3A8A;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
     }
-    .step-header {
+    .sub-header {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #2563EB; /* 亮藍色 */
+        color: #2563EB;
+        margin-top: 10px;
     }
-    /* 優化 Expander 的標題樣式 */
-    .streamlit-expanderHeader {
-        font-weight: 600;
-        font-size: 1.1rem;
+    /* 優化側邊欄樣式 */
+    .css-1d391kg {
+        padding-top: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
-
-# --- 標題區 ---
-st.markdown('<div class="main-header">⚡ SEO 8-Step 戰略儀表板 (GKP 強化版)</div>', unsafe_allow_html=True)
-st.caption("🚀 戰略中控台：從主題發想、GKP 數據驗證到 SERP 深度研究的全流程 Prompt 生成器。")
 
 # --- 輔助函式 ---
 def get_value(input_val, placeholder_text):
@@ -46,46 +44,69 @@ def get_value(input_val, placeholder_text):
     return f"[{placeholder_text}]"
 
 # ==========================================
-# SIDEBAR：全局脈絡控制中心
+# SIDEBAR：導覽與記憶核心
 # ==========================================
 with st.sidebar:
-    st.header("🧠 戰略大腦 (Context)")
-    st.info("💡 此處為 AI 的長期記憶。請在每一步驟完成後，將最新的【會議紀錄】貼回此處。")
+    st.title("⚡ SEO 戰略中控")
     
+    # 1. 導覽選單 (Navigation)
+    st.subheader("📍 步驟導覽")
+    selected_step = st.radio(
+        "選擇當前進度：",
+        [
+            "Step 1: 產品 / 計畫解析",
+            "Step 2: 任務目標 → 主題發想",
+            "Step 3: 關鍵字候選清單 (Pre-GKP)",
+            "Step 4: GKP 數據決策 (Post-GKP)",
+            "Step 5: 搜尋意圖 Deep Research",
+            "Step 6: 文章標題生成",
+            "Step 7: 文章大綱",
+            "Step 8: 文章撰寫 + 技術 SEO"
+        ],
+        index=0
+    )
+    
+    st.divider()
+
+    # 2. 全局脈絡 (Meeting Log)
+    st.subheader("🧠 戰略大腦 (會議紀錄)")
+    st.info("這是 AI 的長期記憶。每完成一步，請將結果更新回此處，讓下一流程讀取。")
+    
+    # 注意：使用 key 參數確保切換頁面時內容不流失
     meeting_log = st.text_area(
-        "目前會議紀錄（全流程共用）",
-        height=600,
+        "目前會議紀錄內容",
+        height=400,
+        key="global_meeting_log",
         placeholder=(
-            "建議格式：\n"
             "【會議紀錄】\n"
-            "[一] 產品 / 計畫摘要\n"
-            "- 一句話總結：\n"
-            "- 目標客群：\n"
-            "- 任務目標：\n"
-            "- 核心價值主張：\n"
-            "- 關鍵限制條件：\n\n"
-            "[二] 關鍵字與搜尋意圖\n"
-            "- 核心關鍵字：\n"
-            "- 次要關鍵字：\n"
-            "- 補充關鍵字：\n"
-            "- 關鍵字策略重點：\n\n"
-            "[三] 最終大綱\n"
-            "- H1 / H2 / H3 結構：\n"
-            "- 大綱設計邏輯："
+            "[一] 產品 / 計畫摘要\n...\n"
+            "[二] 關鍵字與搜尋意圖\n...\n"
+            "[三] 最終大綱\n..."
         )
     )
     meeting_log_val = get_value(meeting_log, "目前尚無會議紀錄（由 Step 1 產生初版）")
 
 # ==========================================
-# Step 1: 產品 / 計畫解析
+# 主畫面邏輯 (根據 Sidebar 選擇渲染內容)
 # ==========================================
-with st.expander("✅ Step 1：產品 / 計畫解析", expanded=True):
-    col1_s1, col2_s1 = st.columns([1, 1])
-    with col1_s1:
-        p1_input = st.text_area("輸入：產品/計畫內容", height=200, placeholder="貼上你的產品說明、Landing Page 文案或計畫白皮書...")
-    with col2_s1:
-        st.markdown("### 📋 複製 Prompt")
+
+# ------------------------------------------
+# Step 1 頁面
+# ------------------------------------------
+if selected_step == "Step 1: 產品 / 計畫解析":
+    st.markdown('<div class="main-header">✅ Step 1：產品 / 計畫解析</div>', unsafe_allow_html=True)
+    st.caption("目標：將原本零散的產品資訊或白皮書，轉化為結構化的 SEO 專案摘要。")
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        # key 是關鍵：加上 key="s1_input" 確保切換頁面後回來文字還在
+        p1_input = st.text_area("產品/計畫內容", height=300, placeholder="貼上你的產品說明、Landing Page 文案...", key="s1_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p1_content = get_value(p1_input, "內容貼在這裡")
+        
         prompt1 = f"""以下是目前專案的會議紀錄（若為首次執行可忽略內容僅供參考）：
 {meeting_log_val}
 
@@ -123,15 +144,19 @@ with st.expander("✅ Step 1：產品 / 計畫解析", expanded=True):
 {p1_content}"""
         st.code(prompt1, language="markdown")
 
-# ==========================================
-# Step 2: 任務目標 → 主題發想
-# ==========================================
-with st.expander("✅ Step 2：任務目標 → 主題發想"):
-    col1_s2, col2_s2 = st.columns([1, 1])
-    with col1_s2:
-        p2_input = st.text_area("輸入：SEO 任務目標", height=150, placeholder="例如：針對中小企業主，建立品牌權威並引導試用註冊...")
-    with col2_s2:
-        st.markdown("### 📋 複製 Prompt")
+# ------------------------------------------
+# Step 2 頁面
+# ------------------------------------------
+elif selected_step == "Step 2: 任務目標 → 主題發想":
+    st.markdown('<div class="main-header">✅ Step 2：任務目標 → 主題發想</div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p2_input = st.text_area("SEO 任務目標", height=200, placeholder="例如：針對中小企業主，建立品牌權威並引導試用註冊...", key="s2_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p2_goal = get_value(p2_input, "任務目標")
         prompt2 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
@@ -145,15 +170,20 @@ with st.expander("✅ Step 2：任務目標 → 主題發想"):
 本步驟僅需輸出主題表格，無須更新會議紀錄。"""
         st.code(prompt2, language="markdown")
 
-# ==========================================
-# Step 3: 關鍵字候選清單（給 GKP 用）
-# ==========================================
-with st.expander("✅ Step 3：關鍵字候選清單 (Pre-GKP)"):
-    col1_s3, col2_s3 = st.columns([1, 1])
-    with col1_s3:
-        p3_input = st.text_area("輸入：Step 2 產出的主題清單", height=150, placeholder="貼上 AI 剛剛產生的主題方向/Topic 清單...")
-    with col2_s3:
-        st.markdown("### 📋 複製 Prompt")
+# ------------------------------------------
+# Step 3 頁面
+# ------------------------------------------
+elif selected_step == "Step 3: 關鍵字候選清單 (Pre-GKP)":
+    st.markdown('<div class="main-header">✅ Step 3：關鍵字候選清單 (Pre-GKP)</div>', unsafe_allow_html=True)
+    st.caption("目標：將發想出的主題，轉化為可以丟進 Google Keyword Planner 的格式。")
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p3_input = st.text_area("Step 2 產出的主題清單", height=200, placeholder="貼上 AI 剛剛產生的主題方向/Topic 清單...", key="s3_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p3_list = get_value(p3_input, "主題清單")
         prompt3 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
@@ -170,15 +200,20 @@ with st.expander("✅ Step 3：關鍵字候選清單 (Pre-GKP)"):
 本步驟無須更新會議紀錄。"""
         st.code(prompt3, language="markdown")
 
-# ==========================================
-# Step 4: GKP 資料 → 決定核心關鍵字
-# ==========================================
-with st.expander("✅ Step 4：GKP 數據決策 (Post-GKP)"):
-    col1_s4, col2_s4 = st.columns([1, 1])
-    with col1_s4:
-        p4_input = st.text_area("輸入：GKP 輸出數據", height=200, placeholder="直接貼上 GKP 的 CSV 內容，或複製表格數據...")
-    with col2_s4:
-        st.markdown("### 📋 複製 Prompt")
+# ------------------------------------------
+# Step 4 頁面
+# ------------------------------------------
+elif selected_step == "Step 4: GKP 數據決策 (Post-GKP)":
+    st.markdown('<div class="main-header">✅ Step 4：GKP 數據決策 (Post-GKP)</div>', unsafe_allow_html=True)
+    st.caption("目標：這一步最重要。請根據真實數據（流量/競爭度）來鎖定核心關鍵字。")
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p4_input = st.text_area("GKP 輸出數據", height=300, placeholder="直接貼上 GKP 的 CSV 內容，或複製表格數據...", key="s4_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p4_data = get_value(p4_input, "GKP 輸出資料")
         prompt4 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
@@ -204,15 +239,19 @@ GKP 數據：
 請務必完整輸出，這份紀錄將覆蓋舊版本。"""
         st.code(prompt4, language="markdown")
 
-# ==========================================
-# Step 5: 搜尋意圖 Deep Research
-# ==========================================
-with st.expander("✅ Step 5：搜尋意圖 SERP Deep Research"):
-    col1_s5, col2_s5 = st.columns([1, 1])
-    with col1_s5:
-        p5_input = st.text_area("輸入：Step 4 選定的核心關鍵字", height=150)
-    with col2_s5:
-        st.markdown("### 📋 複製 Prompt")
+# ------------------------------------------
+# Step 5 頁面
+# ------------------------------------------
+elif selected_step == "Step 5: 搜尋意圖 Deep Research":
+    st.markdown('<div class="main-header">✅ Step 5：搜尋意圖 SERP Deep Research</div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p5_input = st.text_area("Step 4 選定的核心關鍵字", height=200, key="s5_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p5_keywords = get_value(p5_input, "核心關鍵字")
         prompt5 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
@@ -228,15 +267,19 @@ with st.expander("✅ Step 5：搜尋意圖 SERP Deep Research"):
 本步驟無須更新會議紀錄。"""
         st.code(prompt5, language="markdown")
 
-# ==========================================
-# Step 6: 文章標題生成
-# ==========================================
-with st.expander("✅ Step 6：文章標題生成"):
-    col1_s6, col2_s6 = st.columns([1, 1])
-    with col1_s6:
-        p6_input = st.text_area("輸入：Step 5 意圖分析結果", height=150)
-    with col2_s6:
-        st.markdown("### 📋 複製 Prompt")
+# ------------------------------------------
+# Step 6 頁面
+# ------------------------------------------
+elif selected_step == "Step 6: 文章標題生成":
+    st.markdown('<div class="main-header">✅ Step 6：文章標題生成</div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p6_input = st.text_area("Step 5 意圖分析結果", height=200, key="s6_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p6_intent = get_value(p6_input, "搜尋意圖結果")
         prompt6 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
@@ -252,15 +295,19 @@ with st.expander("✅ Step 6：文章標題生成"):
 要求：融入核心關鍵字、有點擊動機、不重複。"""
         st.code(prompt6, language="markdown")
 
-# ==========================================
-# Step 7: 文章大綱
-# ==========================================
-with st.expander("✅ Step 7：文章大綱"):
-    col1_s7, col2_s7 = st.columns([1, 1])
-    with col1_s7:
-        p7_input = st.text_input("輸入：最終選擇的文章標題")
-    with col2_s7:
-        st.markdown("### 📋 複製 Prompt")
+# ------------------------------------------
+# Step 7 頁面
+# ------------------------------------------
+elif selected_step == "Step 7: 文章大綱":
+    st.markdown('<div class="main-header">✅ Step 7：文章大綱</div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p7_input = st.text_input("最終選擇的文章標題", key="s7_input")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p7_title = get_value(p7_input, "最終標題")
         prompt7 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
@@ -283,19 +330,26 @@ with st.expander("✅ Step 7：文章大綱"):
 請務必完整輸出，這將作為寫作基準。"""
         st.code(prompt7, language="markdown")
 
-# ==========================================
-# Step 8: 文章撰寫 + 技術 SEO
-# ==========================================
-with st.expander("✅ Step 8：文章撰寫 + 技術 SEO"):
-    col1_s8, col2_s8 = st.columns([1, 1])
-    with col1_s8:
-        p8_word = st.text_input("字數需求", value="1500 字")
-        p8_cta = st.text_input("CTA 文案", value="免費試用：https://example.com")
-        p8_outline = st.text_area("輸入：確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...")
-    with col2_s8:
-        st.markdown("### 📋 複製 Prompt")
-        p8_title_final = get_value(p7_input, "最終標題")
+# ------------------------------------------
+# Step 8 頁面
+# ------------------------------------------
+elif selected_step == "Step 8: 文章撰寫 + 技術 SEO":
+    st.markdown('<div class="main-header">✅ Step 8：文章撰寫 + 技術 SEO</div>', unsafe_allow_html=True)
+    st.caption("目標：這是最後一步，結合所有決策進行寫作。")
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
+        p8_cta = st.text_input("CTA 文案", value="免費試用：https://example.com", key="s8_cta")
+        p8_outline = st.text_area("確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...", key="s8_outline")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
+        # 注意：變數來源要對應正確的 key
+        p8_title_final = get_value(st.session_state.get("s7_input", ""), "最終標題(請回Step7輸入)") 
         p8_outline_final = get_value(p8_outline, "完整大綱 (以會議紀錄為主)")
+        
         prompt8 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
 
@@ -311,6 +365,3 @@ with st.expander("✅ Step 8：文章撰寫 + 技術 SEO"):
 3. Meta Description (<160字元)
 4. Schema Markup 建議"""
         st.code(prompt8, language="markdown")
-
-st.divider()
-st.success("🎉 流程結束。請確認 Sidebar 中的會議紀錄已包含最終完整資訊，可存檔留底。")
