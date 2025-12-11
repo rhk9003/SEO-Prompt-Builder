@@ -42,12 +42,28 @@ st.markdown("""
     .css-1d391kg {
         padding-top: 1rem;
     }
+    /* 優化按鈕間距 */
+    .stButton button {
+        margin-top: 1rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. 輔助函式
+# 3. 輔助函式與全域變數
 # ==========================================
+# 定義步驟清單，供導航使用
+STEPS = [
+    "Step 1: 產品 / 計畫解析",
+    "Step 2: 任務目標 → 主題發想",
+    "Step 3: 關鍵字候選清單 (Pre-GKP)",
+    "Step 4: GKP 數據決策 (Post-GKP)",
+    "Step 5: 搜尋意圖 Deep Research",
+    "Step 6: 文章標題生成",
+    "Step 7: 文章大綱",
+    "Step 8: 文章撰寫 + 技術 SEO"
+]
+
 def get_value(input_val, placeholder_text):
     """
     如果使用者有輸入內容，則回傳內容；
@@ -57,6 +73,13 @@ def get_value(input_val, placeholder_text):
         return str(input_val).strip()
     return f"[{placeholder_text}]"
 
+def go_to_step(step_index):
+    """
+    用於切換步驟的 Callback 函式
+    """
+    if 0 <= step_index < len(STEPS):
+        st.session_state.nav_radio = STEPS[step_index]
+
 # ==========================================
 # 4. SIDEBAR：導覽與記憶核心
 # ==========================================
@@ -65,19 +88,16 @@ with st.sidebar:
     
     # --- A. 步驟導覽 ---
     st.subheader("📍 步驟導覽")
+    
+    # 確保 session state 中有 nav_radio 變數
+    if "nav_radio" not in st.session_state:
+        st.session_state.nav_radio = STEPS[0]
+
     selected_step = st.radio(
         "選擇當前進度：",
-        [
-            "Step 1: 產品 / 計畫解析",
-            "Step 2: 任務目標 → 主題發想",
-            "Step 3: 關鍵字候選清單 (Pre-GKP)",
-            "Step 4: GKP 數據決策 (Post-GKP)",
-            "Step 5: 搜尋意圖 Deep Research",
-            "Step 6: 文章標題生成",
-            "Step 7: 文章大綱",
-            "Step 8: 文章撰寫 + 技術 SEO"
-        ],
-        index=0
+        STEPS,
+        index=0,
+        key="nav_radio"  # 綁定 key 以便透過按鈕控制
     )
     
     st.divider()
@@ -108,7 +128,7 @@ with st.sidebar:
 # ------------------------------------------
 # Step 1 頁面
 # ------------------------------------------
-if selected_step == "Step 1: 產品 / 計畫解析":
+if selected_step == STEPS[0]:
     st.markdown('<div class="main-header">✅ Step 1：產品 / 計畫解析</div>', unsafe_allow_html=True)
     st.caption("目標：將原本零散的產品資訊或白皮書，轉化為結構化的 SEO 專案摘要。")
     
@@ -161,11 +181,15 @@ if selected_step == "Step 1: 產品 / 計畫解析":
 以下是產品/計畫內容：
 {p1_content}"""
         st.code(prompt1, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 2 (主題發想)", on_click=go_to_step, args=(1,), type="primary")
 
 # ------------------------------------------
 # Step 2 頁面
 # ------------------------------------------
-elif selected_step == "Step 2: 任務目標 → 主題發想":
+elif selected_step == STEPS[1]:
     st.markdown('<div class="main-header">✅ Step 2：任務目標 → 主題發想</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1])
@@ -187,11 +211,15 @@ elif selected_step == "Step 2: 任務目標 → 主題發想":
 
 本步驟僅需輸出主題表格，無須更新會議紀錄。"""
         st.code(prompt2, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 3 (關鍵字候選)", on_click=go_to_step, args=(2,), type="primary")
 
 # ------------------------------------------
 # Step 3 頁面
 # ------------------------------------------
-elif selected_step == "Step 3: 關鍵字候選清單 (Pre-GKP)":
+elif selected_step == STEPS[2]:
     st.markdown('<div class="main-header">✅ Step 3：關鍵字候選清單 (Pre-GKP)</div>', unsafe_allow_html=True)
     st.caption("目標：將發想出的主題，轉化為可以丟進 Google Keyword Planner 的格式。")
     
@@ -217,11 +245,15 @@ elif selected_step == "Step 3: 關鍵字候選清單 (Pre-GKP)":
 
 本步驟無須更新會議紀錄。"""
         st.code(prompt3, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 4 (GKP 決策)", on_click=go_to_step, args=(3,), type="primary")
 
 # ------------------------------------------
 # Step 4 頁面
 # ------------------------------------------
-elif selected_step == "Step 4: GKP 數據決策 (Post-GKP)":
+elif selected_step == STEPS[3]:
     st.markdown('<div class="main-header">✅ Step 4：GKP 數據決策 (Post-GKP)</div>', unsafe_allow_html=True)
     st.caption("目標：這一步最重要。請根據真實數據（流量/競爭度）來鎖定核心關鍵字。")
     
@@ -267,11 +299,15 @@ GKP 數據：
 
 請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
         st.code(prompt4, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 5 (SERP 研究)", on_click=go_to_step, args=(4,), type="primary")
 
 # ------------------------------------------
 # Step 5 頁面
 # ------------------------------------------
-elif selected_step == "Step 5: 搜尋意圖 Deep Research":
+elif selected_step == STEPS[4]:
     st.markdown('<div class="main-header">✅ Step 5：搜尋意圖 SERP Deep Research</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1])
@@ -295,11 +331,15 @@ elif selected_step == "Step 5: 搜尋意圖 Deep Research":
 
 本步驟無須更新會議紀錄。"""
         st.code(prompt5, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 6 (標題生成)", on_click=go_to_step, args=(5,), type="primary")
 
 # ------------------------------------------
 # Step 6 頁面
 # ------------------------------------------
-elif selected_step == "Step 6: 文章標題生成":
+elif selected_step == STEPS[5]:
     st.markdown('<div class="main-header">✅ Step 6：文章標題生成</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1])
@@ -323,11 +363,15 @@ elif selected_step == "Step 6: 文章標題生成":
 
 要求：融入核心關鍵字、有點擊動機、不重複。"""
         st.code(prompt6, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 7 (文章大綱)", on_click=go_to_step, args=(6,), type="primary")
 
 # ------------------------------------------
 # Step 7 頁面
 # ------------------------------------------
-elif selected_step == "Step 7: 文章大綱":
+elif selected_step == STEPS[6]:
     st.markdown('<div class="main-header">✅ Step 7：文章大綱</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1])
@@ -365,43 +409,3 @@ elif selected_step == "Step 7: 文章大綱":
 
 [三] 最終大綱 (請更新此處，包含 H1/H2/H3 結構與邏輯)
 ...
-```
-
-請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
-        st.code(prompt7, language="markdown")
-
-# ------------------------------------------
-# Step 8 頁面
-# ------------------------------------------
-elif selected_step == "Step 8: 文章撰寫 + 技術 SEO":
-    st.markdown('<div class="main-header">✅ Step 8：文章撰寫 + 技術 SEO</div>', unsafe_allow_html=True)
-    st.caption("目標：這是最後一步，結合所有決策進行寫作。")
-    
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
-        p8_cta = st.text_input("CTA 文案", value="免費試用：https://example.com", key="s8_cta")
-        p8_outline = st.text_area("確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...", key="s8_outline")
-        
-    with col2:
-        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        # 注意：使用 session_state 抓取跨頁面的變數 (因為切換頁面後，Step 7 的輸入框已消失，只能從記憶體抓)
-        p8_title_final = get_value(st.session_state.get("s7_input", ""), "最終標題(請回Step7輸入)") 
-        p8_outline_final = get_value(p8_outline, "完整大綱 (以會議紀錄為主)")
-        
-        prompt8 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
-
-請根據會議紀錄撰寫文章。
-• 標題：{p8_title_final}
-• 字數：{p8_word}
-• CTA：{p8_cta}
-• 補充大綱指示：{p8_outline_final}
-
-產出：
-1. 完整文章 (專業語氣、結構清晰)
-2. Meta Title (<60字元)
-3. Meta Description (<160字元)
-4. Schema Markup 建議"""
-        st.code(prompt8, language="markdown")
