@@ -1,55 +1,69 @@
 import streamlit as st
 
-# --- 頁面設定 ---
+# ==========================================
+# 1. 頁面基礎設定
+# ==========================================
 st.set_page_config(
     page_title="SEO 8-Step 戰略儀表板",
     page_icon="⚡",
     layout="wide"
 )
 
-# --- CSS 優化 (針對單頁模式調整) ---
+# ==========================================
+# 2. CSS 優化 (針對側邊欄與閱讀體驗)
+# ==========================================
 st.markdown("""
 <style>
+    /* 輸入框字體優化 */
     .stTextArea textarea {
         font-family: "Consolas", "Monaco", monospace;
         font-size: 0.95rem;
         background-color: #f8f9fa;
         color: #333;
     }
+    /* 主標題樣式 */
     .main-header {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #1E3A8A;
+        color: #1E3A8A; /* 深藍色 */
         border-bottom: 2px solid #eee;
         padding-bottom: 10px;
         margin-bottom: 20px;
     }
+    /* 副標題樣式 */
     .sub-header {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #2563EB;
+        color: #2563EB; /* 亮藍色 */
         margin-top: 10px;
+        margin-bottom: 5px;
     }
-    /* 優化側邊欄樣式 */
+    /* 調整側邊欄頂部間距 */
     .css-1d391kg {
         padding-top: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 輔助函式 ---
+# ==========================================
+# 3. 輔助函式
+# ==========================================
 def get_value(input_val, placeholder_text):
+    """
+    如果使用者有輸入內容，則回傳內容；
+    若無，則回傳預設佔位符，方便 Prompt 閱讀。
+    """
     if input_val and str(input_val).strip():
         return str(input_val).strip()
     return f"[{placeholder_text}]"
 
 # ==========================================
-# SIDEBAR：導覽與記憶核心
+# 4. SIDEBAR：導覽與記憶核心
 # ==========================================
 with st.sidebar:
     st.title("⚡ SEO 戰略中控")
     
-    # 1. 導覽選單 (Navigation)
+    # --- A. 步驟導覽 ---
     st.subheader("📍 步驟導覽")
     selected_step = st.radio(
         "選擇當前進度：",
@@ -68,16 +82,17 @@ with st.sidebar:
     
     st.divider()
 
-    # 2. 全局脈絡 (Meeting Log)
+    # --- B. 全局脈絡 (會議紀錄) ---
     st.subheader("🧠 戰略大腦 (會議紀錄)")
-    st.info("💡 提示：將 AI 回覆中的「Code Block」內容一鍵複製後，貼入下方欄位。")
+    st.info("💡 提示：請點擊 AI 回覆中代碼區塊右上角的「Copy」按鈕，再貼回下方。")
     
-    # 注意：使用 key 參數確保切換頁面時內容不流失
+    # key="global_meeting_log" 確保切換頁面時內容不流失
     meeting_log = st.text_area(
         "目前會議紀錄內容",
         height=400,
         key="global_meeting_log",
         placeholder=(
+            "建議格式：\n"
             "【會議紀錄】\n"
             "[一] 產品 / 計畫摘要\n...\n"
             "[二] 關鍵字與搜尋意圖\n...\n"
@@ -87,7 +102,7 @@ with st.sidebar:
     meeting_log_val = get_value(meeting_log, "目前尚無會議紀錄（由 Step 1 產生初版）")
 
 # ==========================================
-# 主畫面邏輯
+# 5. 主畫面邏輯 (根據 Sidebar 選擇渲染內容)
 # ==========================================
 
 # ------------------------------------------
@@ -100,6 +115,7 @@ if selected_step == "Step 1: 產品 / 計畫解析":
     col1, col2 = st.columns([1, 1])
     with col1:
         st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        # key="s1_input" 確保切換頁面後輸入內容不消失
         p1_input = st.text_area("產品/計畫內容", height=300, placeholder="貼上你的產品說明、Landing Page 文案...", key="s1_input")
         
     with col2:
@@ -119,14 +135,11 @@ if selected_step == "Step 1: 產品 / 計畫解析":
 5. 目前內容說明的缺口（Information Gaps）
 
 ⸻
-【會議紀錄輸出要求（重點）】
-在完成上述解析後，請在回覆最下方額外輸出一個區塊：**完整的最新版會議紀錄**。
+**【輸出格式強制要求：Markdown Code Block】**
 
-⚠️ **格式重要要求：**
-請務必將這份【會議紀錄】的內容包在 **Markdown Code Block (即使用 ``` 包覆)** 中。
-這樣我可以一鍵複製整份紀錄。
+在完成解析後，請務必將「完整的最新版會議紀錄」獨立輸出在一個 **Markdown 代碼區塊** 中，格式必須如下所示（請嚴格遵守，方便我一鍵複製）：
 
-內容格式如下：
+```markdown
 【會議紀錄】
 [一] 產品 / 計畫摘要
 - 一句話總結（What is it）：
@@ -140,8 +153,9 @@ if selected_step == "Step 1: 產品 / 計畫解析":
 
 [三] 最終大綱
 - 請暫時寫：「尚未產出，待大綱步驟更新」。
+```
 
-請務必完整輸出上述三個區塊。
+請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容。**
 
 ⸻
 以下是產品/計畫內容：
@@ -219,6 +233,7 @@ elif selected_step == "Step 4: GKP 數據決策 (Post-GKP)":
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p4_data = get_value(p4_input, "GKP 輸出資料")
+        
         prompt4 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
 
@@ -234,19 +249,23 @@ GKP 數據：
 5. 後續 SERP 分析建議
 
 ⸻
-【會議紀錄更新要求】
-請在回覆最下方，輸出一份「更新後的完整會議紀錄」。
+**【輸出格式強制要求：Markdown Code Block】**
 
-⚠️ **格式重要要求：**
-請務必將這份【會議紀錄】的內容包在 **Markdown Code Block (即使用 ``` 包覆)** 中。
-這樣我可以一鍵複製整份紀錄。
+請務必將「更新後的完整會議紀錄」獨立輸出在一個 **Markdown 代碼區塊** 中，格式必須如下所示：
 
-格式更新如下：
+```markdown
+【會議紀錄】
 [一] 產品 / 計畫摘要 (保留或修正)
-[二] 關鍵字與搜尋意圖 (大幅更新此處，列出具體關鍵字策略)
-[三] 最終大綱 (尚未產出)
+...
 
-請務必完整輸出，這份紀錄將覆蓋舊版本。"""
+[二] 關鍵字與搜尋意圖 (請大幅更新此處，列出具體關鍵字策略)
+...
+
+[三] 最終大綱
+- 尚未產出，待大綱步驟更新
+```
+
+請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
         st.code(prompt4, language="markdown")
 
 # ------------------------------------------
@@ -319,6 +338,7 @@ elif selected_step == "Step 7: 文章大綱":
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p7_title = get_value(p7_input, "最終標題")
+        
         prompt7 = f"""以下是目前專案的會議紀錄：
 {meeting_log_val}
 
@@ -331,19 +351,23 @@ elif selected_step == "Step 7: 文章大綱":
 3. 附上大綱邏輯解說 (如何對應意圖)
 
 ⸻
-【會議紀錄更新要求】
-請在回覆最下方，輸出一份「更新後的完整會議紀錄」。
+**【輸出格式強制要求：Markdown Code Block】**
 
-⚠️ **格式重要要求：**
-請務必將這份【會議紀錄】的內容包在 **Markdown Code Block (即使用 ``` 包覆)** 中。
-這樣我可以一鍵複製整份紀錄。
+請務必將「更新後的完整會議紀錄」獨立輸出在一個 **Markdown 代碼區塊** 中，格式必須如下所示：
 
-格式更新如下：
+```markdown
+【會議紀錄】
 [一] 產品 / 計畫摘要 (完整版)
-[二] 關鍵字與搜尋意圖 (完整版)
-[三] 最終大綱 (更新此處，包含 H1/H2/H3 結構與邏輯)
+...
 
-請務必完整輸出，這將作為寫作基準。"""
+[二] 關鍵字與搜尋意圖 (完整版)
+...
+
+[三] 最終大綱 (請更新此處，包含 H1/H2/H3 結構與邏輯)
+...
+```
+
+請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
         st.code(prompt7, language="markdown")
 
 # ------------------------------------------
@@ -357,12 +381,12 @@ elif selected_step == "Step 8: 文章撰寫 + 技術 SEO":
     with col1:
         st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
         p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
-        p8_cta = st.text_input("CTA 文案", value="免費試用：[https://example.com](https://example.com)", key="s8_cta")
+        p8_cta = st.text_input("CTA 文案", value="免費試用：https://example.com", key="s8_cta")
         p8_outline = st.text_area("確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...", key="s8_outline")
         
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        # 注意：變數來源要對應正確的 key
+        # 注意：使用 session_state 抓取跨頁面的變數 (因為切換頁面後，Step 7 的輸入框已消失，只能從記憶體抓)
         p8_title_final = get_value(st.session_state.get("s7_input", ""), "最終標題(請回Step7輸入)") 
         p8_outline_final = get_value(p8_outline, "完整大綱 (以會議紀錄為主)")
         
