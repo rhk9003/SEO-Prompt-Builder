@@ -331,15 +331,17 @@ elif selected_step == STEPS[4]:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p5_keywords = get_value(p5_input, "核心關鍵字")
 
-        # 修改後的 Step 5 Prompt
-        prompt5 = f"""以下是目前專案的會議紀錄（僅供背景參考）：
+        # 修改後的 Step 5 Prompt (修正版：強調 Standard Search)
+        prompt5 = f"""以下是目前專案的會議紀錄（僅供背景參考）：
 {meeting_log_val}
 
 請針對以下「核心關鍵字」執行 Deep Research (深度聯網研究)：
 關鍵字：{p5_keywords}
 
 【重要指令：必須使用瀏覽/搜索工具】
-請不要憑空模擬！請務必使用你的瀏覽工具，實際搜索 Google 目前針對該關鍵字的 SERP（搜尋結果頁），閱讀前 10-20 名的標題與內容摘要，然後進行以下分析。
+1. 請使用標準 Google Search 功能（Browsing）。
+2. **請以「觀察者」的角度分析 SERP，而不是「學習者」。**
+3. 請不要憑空模擬！請務必使用你的瀏覽工具，實際搜索 Google 目前針對該關鍵字的 SERP（搜尋結果頁），閱讀前 10-20 名的標題與內容摘要。
 
 本步驟的目標是找出「真實的競爭現況」與「尚未被滿足的缺口」。
 
