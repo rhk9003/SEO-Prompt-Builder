@@ -70,7 +70,7 @@ with st.sidebar:
 
     # 2. 全局脈絡 (Meeting Log)
     st.subheader("🧠 戰略大腦 (會議紀錄)")
-    st.info("這是 AI 的長期記憶。每完成一步，請將結果更新回此處，讓下一流程讀取。")
+    st.info("💡 提示：將 AI 回覆中的「Code Block」內容一鍵複製後，貼入下方欄位。")
     
     # 注意：使用 key 參數確保切換頁面時內容不流失
     meeting_log = st.text_area(
@@ -87,7 +87,7 @@ with st.sidebar:
     meeting_log_val = get_value(meeting_log, "目前尚無會議紀錄（由 Step 1 產生初版）")
 
 # ==========================================
-# 主畫面邏輯 (根據 Sidebar 選擇渲染內容)
+# 主畫面邏輯
 # ==========================================
 
 # ------------------------------------------
@@ -100,7 +100,6 @@ if selected_step == "Step 1: 產品 / 計畫解析":
     col1, col2 = st.columns([1, 1])
     with col1:
         st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        # key 是關鍵：加上 key="s1_input" 確保切換頁面後回來文字還在
         p1_input = st.text_area("產品/計畫內容", height=300, placeholder="貼上你的產品說明、Landing Page 文案...", key="s1_input")
         
     with col2:
@@ -121,8 +120,13 @@ if selected_step == "Step 1: 產品 / 計畫解析":
 
 ⸻
 【會議紀錄輸出要求（重點）】
-在完成上述解析後，請在回覆最下方額外輸出一個區塊：**完整的最新版會議紀錄**，格式如下：
+在完成上述解析後，請在回覆最下方額外輸出一個區塊：**完整的最新版會議紀錄**。
 
+⚠️ **格式重要要求：**
+請務必將這份【會議紀錄】的內容包在 **Markdown Code Block (即使用 ``` 包覆)** 中。
+這樣我可以一鍵複製整份紀錄。
+
+內容格式如下：
 【會議紀錄】
 [一] 產品 / 計畫摘要
 - 一句話總結（What is it）：
@@ -231,7 +235,13 @@ GKP 數據：
 
 ⸻
 【會議紀錄更新要求】
-請在回覆最下方，輸出一份「更新後的完整會議紀錄」：
+請在回覆最下方，輸出一份「更新後的完整會議紀錄」。
+
+⚠️ **格式重要要求：**
+請務必將這份【會議紀錄】的內容包在 **Markdown Code Block (即使用 ``` 包覆)** 中。
+這樣我可以一鍵複製整份紀錄。
+
+格式更新如下：
 [一] 產品 / 計畫摘要 (保留或修正)
 [二] 關鍵字與搜尋意圖 (大幅更新此處，列出具體關鍵字策略)
 [三] 最終大綱 (尚未產出)
@@ -322,7 +332,13 @@ elif selected_step == "Step 7: 文章大綱":
 
 ⸻
 【會議紀錄更新要求】
-請在回覆最下方，輸出一份「更新後的完整會議紀錄」：
+請在回覆最下方，輸出一份「更新後的完整會議紀錄」。
+
+⚠️ **格式重要要求：**
+請務必將這份【會議紀錄】的內容包在 **Markdown Code Block (即使用 ``` 包覆)** 中。
+這樣我可以一鍵複製整份紀錄。
+
+格式更新如下：
 [一] 產品 / 計畫摘要 (完整版)
 [二] 關鍵字與搜尋意圖 (完整版)
 [三] 最終大綱 (更新此處，包含 H1/H2/H3 結構與邏輯)
@@ -341,7 +357,7 @@ elif selected_step == "Step 8: 文章撰寫 + 技術 SEO":
     with col1:
         st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
         p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
-        p8_cta = st.text_input("CTA 文案", value="免費試用：https://example.com", key="s8_cta")
+        p8_cta = st.text_input("CTA 文案", value="免費試用：[https://example.com](https://example.com)", key="s8_cta")
         p8_outline = st.text_area("確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...", key="s8_outline")
         
     with col2:
