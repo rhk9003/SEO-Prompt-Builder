@@ -307,34 +307,106 @@ GKP 數據：
 # ------------------------------------------
 # Step 5 頁面
 # ------------------------------------------
+# ------------------------------------------
+# Step 5：搜尋意圖深層研究（SERP + Deep Intent）
+# ------------------------------------------
 elif selected_step == STEPS[4]:
-    st.markdown('<div class="main-header">✅ Step 5：搜尋意圖 SERP Deep Research</div>', unsafe_allow_html=True)
-    
+    st.markdown('<div class="main-header">✅ Step 5：搜尋意圖深層研究（SERP + Deep Intent）</div>', unsafe_allow_html=True)
+    st.caption("目標：一次完成 SERP 顯性意圖 + 隱性意圖 + 情境意圖 + 深層意圖 + 需求生成意圖，作為 Step 6 標題策略的基礎。")
+
     col1, col2 = st.columns([1, 1])
+
+    # ---- 左欄：輸入 ----
     with col1:
         st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p5_input = st.text_area("Step 4 選定的核心關鍵字", height=200, key="s5_input")
-        
+        p5_input = st.text_area(
+            "Step 4 選定的核心關鍵字",
+            height=200,
+            key="s5_input",
+            placeholder="例如：\nB群 什麼時候吃\nB群 空腹\n上班族 疲勞 補充品"
+        )
+
+    # ---- 右欄：Prompt ----
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
         p5_keywords = get_value(p5_input, "核心關鍵字")
-        prompt5 = f"""以下是目前專案的會議紀錄：
+
+        prompt5 = f"""以下是目前專案的會議紀錄（僅供背景參考）：
 {meeting_log_val}
 
-請對以下核心關鍵字進行 SERP Deep Research：
+請針對以下「核心關鍵字」進行 Step 5：意圖深層研究（SERP + Deep Intent）：
 {p5_keywords}
 
-請完成：
-1. 研究 Google 前 20 筆結果的標題模式
-2. 搜尋意圖推論 (主要/次要/隱性)
-3. 競爭者內容缺口 (Content Gap)
+本步驟的目標：
+1. 找出 SERP 顯性意圖（市場已呈現）
+2. 推論 SERP 隱性意圖（使用者真正想問但沒打出的問題）
+3. 透過不同情境推導多種意圖變化（Contextual Intent）
+4. 挖掘使用者未察覺的深層需求（Unconscious Intent）
+5. 產生可教育市場的需求生成式意圖（Demand-Gen Intent）
 
-本步驟無須更新會議紀錄。"""
+請依以下五大區塊輸出（本步驟無須更新會議紀錄）：
+
+------------------------------------------------------------
+【一】SERP 顯性意圖（Explicit Intent）
+請模擬分析 Google 前 20 名結果：
+- 主流內容與重複結構
+- 常見標題模式
+- 顯性問題列表（至少 5–10 項）
+
+------------------------------------------------------------
+【二】SERP 隱性意圖（Implicit Intent）
+請推論 SERP 隱藏但真實存在的需求，例如：
+- 使用者其實擔心什麼？
+- 他在尋找哪些判斷依據？
+- 他希望避免哪些錯誤？
+
+請列出 5–10 項。
+
+------------------------------------------------------------
+【三】情境化意圖（Contextual Intent）
+請依 4 種情境維度推導不同搜尋意圖：
+1. 身份（Persona）
+2. 場景（通勤、上班、半夜、購物前）
+3. 心理狀態（焦慮、猶豫、怕踩雷、想省時間）
+4. 任務階段（認知 → 比較 → 決策 → 維護）
+
+請至少列出 6–12 個情境，每項需含：
+- 使用者是誰
+- 當下任務
+- 真正意圖
+
+------------------------------------------------------------
+【四】未被意識的深層意圖（Unconscious Intent）
+請推論使用者未搜尋但會被內容觸發的需求，例如：
+- 風險避免心理
+- 做決策前的確信需求
+- 想確認自己沒有忽略什麼
+- 對後續結果的焦慮與期待
+
+請列出 8–12 項。
+
+------------------------------------------------------------
+【五】需求生成式意圖（Demand-Gen Intent）
+請推導尚未成為搜尋但可以由內容創造的需求：
+- 新比較框架
+- 未被討論的規格差異
+- 常見誤解的反轉觀點
+- 更有效的分類方式
+- 可能成為未來趨勢的議題
+
+請列出 6–10 項。
+
+------------------------------------------------------------
+【六】意圖全景摘要（Intent Panorama）
+請將上述意圖收斂成 5–7 個「主軸意圖」，
+並說明這些主軸如何影響 Step 6 標題生成與 Step 7 大綱編排。
+"""
         st.code(prompt5, language="markdown")
-    
-    # 底部導航按鈕
+
+    # ---- 底部導航 ----
     st.divider()
     st.button("👉 前往下一步：Step 6 (標題生成)", on_click=go_to_step, args=(5,), type="primary")
+
 
 # ------------------------------------------
 # Step 6 頁面
