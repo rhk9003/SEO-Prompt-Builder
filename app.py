@@ -409,3 +409,50 @@ elif selected_step == STEPS[6]:
 
 [三] 最終大綱 (請更新此處，包含 H1/H2/H3 結構與邏輯)
 ...
+```
+
+請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
+        st.code(prompt7, language="markdown")
+    
+    # 底部導航按鈕
+    st.divider()
+    st.button("👉 前往下一步：Step 8 (撰寫 + 技術 SEO)", on_click=go_to_step, args=(7,), type="primary")
+
+# ------------------------------------------
+# Step 8 頁面
+# ------------------------------------------
+elif selected_step == STEPS[7]:
+    st.markdown('<div class="main-header">✅ Step 8：文章撰寫 + 技術 SEO</div>', unsafe_allow_html=True)
+    st.caption("目標：這是最後一步，結合所有決策進行寫作。")
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
+        p8_cta = st.text_input("CTA 文案", value="免費試用：[https://example.com](https://example.com)", key="s8_cta")
+        p8_outline = st.text_area("確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...", key="s8_outline")
+        
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
+        # 注意：使用 session_state 抓取跨頁面的變數 (因為切換頁面後，Step 7 的輸入框已消失，只能從記憶體抓)
+        p8_title_final = get_value(st.session_state.get("s7_input", ""), "最終標題(請回Step7輸入)") 
+        p8_outline_final = get_value(p8_outline, "完整大綱 (以會議紀錄為主)")
+        
+        prompt8 = f"""以下是目前專案的會議紀錄：
+{meeting_log_val}
+
+請根據會議紀錄撰寫文章。
+• 標題：{p8_title_final}
+• 字數：{p8_word}
+• CTA：{p8_cta}
+• 補充大綱指示：{p8_outline_final}
+
+產出：
+1. 完整文章 (專業語氣、結構清晰)
+2. Meta Title (<60字元)
+3. Meta Description (<160字元)
+4. Schema Markup 建議"""
+        st.code(prompt8, language="markdown")
+    
+    st.divider()
+    st.success("🎉 全流程結束！請確認您已保存所有產出內容。")
