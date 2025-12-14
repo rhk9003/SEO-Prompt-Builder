@@ -4,92 +4,112 @@ import streamlit as st
 # 1. 頁面基礎設定
 # ==========================================
 st.set_page_config(
-    page_title="SEO 8-Step 戰略儀表板",
+    page_title="SEO 8-Step 戰略儀表板 (Project Packet Edition)",
     page_icon="⚡",
     layout="wide"
 )
 
 # ==========================================
-# 2. CSS 優化 (針對側邊欄與閱讀體驗)
+# 2. CSS（閱讀體驗）
 # ==========================================
 st.markdown("""
 <style>
-    /* 輸入框字體優化 */
-    .stTextArea textarea {
+    .stTextArea textarea, .stTextInput input {
         font-family: "Consolas", "Monaco", monospace;
         font-size: 0.95rem;
         background-color: #f8f9fa;
         color: #333;
     }
-    /* 主標題樣式 */
     .main-header {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #1E3A8A; /* 深藍色 */
+        color: #1E3A8A;
         border-bottom: 2px solid #eee;
         padding-bottom: 10px;
         margin-bottom: 20px;
     }
-    /* 副標題樣式 */
     .sub-header {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #2563EB; /* 亮藍色 */
+        color: #2563EB;
         margin-top: 10px;
         margin-bottom: 5px;
     }
-    /* 調整側邊欄頂部間距 */
-    .css-1d391kg {
-        padding-top: 1rem;
-    }
-    /* 優化按鈕間距 */
-    .stButton button {
-        margin-top: 1rem;
-    }
+    .stButton button { margin-top: 0.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
 # 3. 輔助函式與全域變數
 # ==========================================
-# 定義步驟清單，供導航使用
 STEPS = [
-    "Step 1: 產品 / 計畫解析",
-    "Step 2: 任務目標 → 主題發想",
+    "Step 1: 產品 / 計畫解析（建立 Project Packet）",
+    "Step 2: SEO 任務目標 → 主題發想（寫入封包）",
     "Step 3: 關鍵字候選清單 (Pre-GKP)",
-    "Step 4: GKP 數據決策 (Post-GKP)",
-    "Step 5: 搜尋意圖 Deep Research",
-    "Step 6: 文章標題生成",
-    "Step 7: 文章大綱",
-    "Step 8: 文章撰寫 + 技術 SEO"
+    "Step 4: GKP 數據決策 (Post-GKP)（寫入封包）",
+    "Step 5: 搜尋意圖 Deep Research（建議寫入封包）",
+    "Step 6: 文章標題生成（寫入封包：Backlog/文章卡）",
+    "Step 7: 文章大綱（更新指定文章卡）",
+    "Step 8: 文章撰寫 + 技術 SEO（更新指定文章卡）"
 ]
 
+PROJECT_PACKET_TEMPLATE = """【PROJECT PACKET v1】
+
+=== [RAW SOURCE | DO NOT MODIFY] ===
+（把原始產品/計畫內容、LP文案、白皮書片段等「完整原文」貼在這裡。）
+=== [/RAW SOURCE] ===
+
+=== [PROJECT LOG | EDITABLE] ===
+- 產品/計畫一句話總結：
+- 目標客群：
+- 核心價值主張（3–5點）：
+- 痛點（3–5點）：
+- 內容缺口（Information Gaps）：
+- SEO 任務目標（這個一定要寫在封包裡）：
+- 品牌語氣/禁忌/限制條件：
+=== [/PROJECT LOG] ===
+
+=== [STRATEGY LOG | EDITABLE] ===
+- Primary Keyword（含GKP數據與理由）：
+- Secondary Keywords：
+- Supporting Keywords：
+- SERP/Intent 洞察摘要（Winning Angle）：
+- 差異化切入點（降維打擊角度）：
+=== [/STRATEGY LOG] ===
+
+=== [CONTENT QUEUE | EDITABLE] ===
+[Backlog Titles | one per line]
+- （每行一個標題）
+
+[Article Cards]
+- 文章ID：A01
+  - 標題：
+  - Primary/Secondary/Supporting：
+  - Winning Angle：
+  - 大綱（H1/H2/H3）：
+  - 字數：
+  - CTA：
+  - Meta Title/Meta Desc/Schema：
+  - 產出備註/連結：
+=== [/CONTENT QUEUE] ===
+"""
+
 def get_value(input_val, placeholder_text):
-    """
-    如果使用者有輸入內容，則回傳內容；
-    若無，則回傳預設佔位符，方便 Prompt 閱讀。
-    """
-    if input_val and str(input_val).strip():
+    if input_val is not None and str(input_val).strip():
         return str(input_val).strip()
     return f"[{placeholder_text}]"
 
-def go_to_step(step_index):
-    """
-    用於切換步驟的 Callback 函式
-    """
+def go_to_step(step_index: int):
     if 0 <= step_index < len(STEPS):
         st.session_state.nav_radio = STEPS[step_index]
 
 # ==========================================
-# 4. SIDEBAR：導覽與記憶核心
+# 4. SIDEBAR：導覽＋Project Packet（可攜帶封包）
 # ==========================================
 with st.sidebar:
     st.title("⚡ SEO 戰略中控")
-    
-    # --- A. 步驟導覽 ---
+
     st.subheader("📍 步驟導覽")
-    
-    # 確保 session state 中有 nav_radio 變數
     if "nav_radio" not in st.session_state:
         st.session_state.nav_radio = STEPS[0]
 
@@ -97,419 +117,392 @@ with st.sidebar:
         "選擇當前進度：",
         STEPS,
         index=0,
-        key="nav_radio"  # 綁定 key 以便透過按鈕控制
+        key="nav_radio"
     )
-    
+
     st.divider()
 
-    # --- B. 全局脈絡 (會議紀錄) ---
-    st.subheader("🧠 戰略大腦 (會議紀錄)")
-    st.info("💡 提示：請點擊 AI 回覆中代碼區塊右上角的「Copy」按鈕，再貼回下方。")
-    
-    # key="global_meeting_log" 確保切換頁面時內容不流失
-    meeting_log = st.text_area(
-        "目前會議紀錄內容",
-        height=400,
-        key="global_meeting_log",
-        placeholder=(
-            "建議格式：\n"
-            "【會議紀錄】\n"
-            "[一] 產品 / 計畫摘要\n...\n"
-            "[二] 關鍵字與搜尋意圖\n...\n"
-            "[三] 最終大綱\n..."
-        )
+    st.subheader("🧳 Project Packet（可攜帶封包）")
+    st.info("你要避免對話太長造成劣化：每次都只複製『最新版封包』到新對話即可續寫。")
+
+    if "project_packet" not in st.session_state:
+        st.session_state.project_packet = PROJECT_PACKET_TEMPLATE
+
+    project_packet = st.text_area(
+        "目前封包內容（請保持為單一可複製區塊）",
+        height=420,
+        key="project_packet"
     )
-    meeting_log_val = get_value(meeting_log, "目前尚無會議紀錄（由 Step 1 產生初版）")
+    project_packet_val = get_value(project_packet, "尚未建立封包")
+
+    st.divider()
+
+    st.subheader("🧩 文章卡控制（跨步驟共用）")
+    current_article_id = st.text_input("目前要更新的文章ID（例：A01）", value=st.session_state.get("current_article_id", "A01"), key="current_article_id")
+    current_title = st.text_input("目前文章標題（可選填，讓 Step7/8 更穩）", value=st.session_state.get("current_title", ""), key="current_title")
 
 # ==========================================
-# 5. 主畫面邏輯 (根據 Sidebar 選擇渲染內容)
+# 5. 主畫面：各步驟
 # ==========================================
 
 # ------------------------------------------
-# Step 1 頁面
+# Step 1
 # ------------------------------------------
 if selected_step == STEPS[0]:
-    st.markdown('<div class="main-header">✅ Step 1：產品 / 計畫解析</div>', unsafe_allow_html=True)
-    st.caption("目標：將原本零散的產品資訊或白皮書，轉化為結構化的 SEO 專案摘要。")
-    
+    st.markdown('<div class="main-header">✅ Step 1：產品 / 計畫解析（建立 Project Packet）</div>', unsafe_allow_html=True)
+    st.caption("目標：把原始資料與專案摘要封裝成『可移植封包』，之後任何新對話只靠封包就能續寫。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        # key="s1_input" 確保切換頁面後輸入內容不消失
-        p1_input = st.text_area("產品/計畫內容", height=300, placeholder="貼上你的產品說明、Landing Page 文案...", key="s1_input")
-        
+        st.markdown('<div class="sub-header">📥 輸入資料（Raw Source）</div>', unsafe_allow_html=True)
+        p1_input = st.text_area("原始產品/計畫內容（請貼完整原文）", height=320, placeholder="貼上你的產品說明、Landing Page 文案、白皮書片段（完整原文）...", key="s1_input")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p1_content = get_value(p1_input, "內容貼在這裡")
-        
-        prompt1 = f"""以下是目前專案的會議紀錄（若為首次執行可忽略內容僅供參考）：
-{meeting_log_val}
+        raw_source = get_value(p1_input, "內容貼在這裡（完整原文）")
 
-請先理解其中的專案背景、目標客群與任務目標，接著根據我提供的產品/計畫內容，進行條列式解析。
+        prompt1 = f"""你將收到一份「PROJECT PACKET v1」，以及我提供的原始資料（RAW SOURCE）。
 
-請依照以下格式輸出解析結果：
-1. 一句話總結（What is it）
-2. 目標客群（Target User）
-3. 核心價值主張（Value Proposition）
-4. 使用者痛點（Pain Points）
-5. 目前內容說明的缺口（Information Gaps）
+【硬性規則】
+1) 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+2) 你必須確保封包中 RAW SOURCE 區塊「逐字原封不動」回傳（包含換行/標點/空白），不得改寫、不得摘要、不得重排、不得刪字。
+3) 若封包 RAW SOURCE 目前是空或佔位，你必須把我提供的 RAW SOURCE 原文逐字貼入封包 RAW SOURCE 區塊。
+4) 除非我明確要求，禁止新增封包以外的新段落。
 
-⸻
-**【輸出格式強制要求：Markdown Code Block】**
+------------------------------------------------------------
+以下是目前的 PROJECT PACKET（若為首次可視為模板）：
 
-在完成解析後，請務必將「完整的最新版會議紀錄」獨立輸出在一個 **Markdown 代碼區塊** 中，格式必須如下所示（請嚴格遵守，方便我一鍵複製）：
+{project_packet_val}
 
-```markdown
-【會議紀錄】
-[一] 產品 / 計畫摘要
-- 一句話總結（What is it）：
-- 目標客群：
-- 任務目標（這篇 SEO 文要達成什麼）：
-- 整理後的核心價值主張（3–5 點）：
-- 關鍵限制條件：若目前尚未指定，請先寫「尚未明確指定，可依一般專業語氣處理」。
+------------------------------------------------------------
+以下是我提供的 RAW SOURCE（請逐字貼入封包 RAW SOURCE 區塊）：
 
-[二] 關鍵字與搜尋意圖
-- 請暫時寫：「尚未決定，待關鍵字決策步驟更新」。
+{raw_source}
 
-[三] 最終大綱
-- 請暫時寫：「尚未產出，待大綱步驟更新」。
-```
+------------------------------------------------------------
+請先完成解析，並更新封包的 PROJECT LOG（僅更新這些欄位）：
+- 產品/計畫一句話總結
+- 目標客群
+- 核心價值主張（3–5點）
+- 痛點（3–5點）
+- 內容缺口（Information Gaps）
+- 品牌語氣/禁忌/限制條件（若未提供請寫「未指定」）
 
-請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容。**
-
-⸻
-以下是產品/計畫內容：
-{p1_content}"""
+最後：輸出「完整最新版 PROJECT PACKET v1」在單一 Markdown code block。
+"""
         st.code(prompt1, language="markdown")
-    
-    # 底部導航按鈕
+
     st.divider()
-    st.button("👉 前往下一步：Step 2 (主題發想)", on_click=go_to_step, args=(1,), type="primary")
+    st.button("👉 前往下一步：Step 2", on_click=go_to_step, args=(1,), type="primary")
 
 # ------------------------------------------
-# Step 2 頁面
+# Step 2
 # ------------------------------------------
 elif selected_step == STEPS[1]:
-    st.markdown('<div class="main-header">✅ Step 2：任務目標 → 主題發想</div>', unsafe_allow_html=True)
-    
+    st.markdown('<div class="main-header">✅ Step 2：SEO 任務目標 → 主題發想（寫入封包）</div>', unsafe_allow_html=True)
+    st.caption("目標：主題發想 + 把 SEO 任務目標寫回封包，確保可攜帶續寫。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p2_input = st.text_area("SEO 任務目標", height=200, placeholder="例如：針對中小企業主，建立品牌權威並引導試用註冊...", key="s2_input")
-        
+        st.markdown('<div class="sub-header">📥 輸入</div>', unsafe_allow_html=True)
+        p2_goal_input = st.text_area("SEO 任務目標（你希望這批文章達成什麼）", height=180, placeholder="例如：針對中小企業主，建立權威並導向諮詢/試用...", key="s2_goal")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p2_goal = get_value(p2_input, "任務目標")
-        prompt2 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
+        p2_goal = get_value(p2_goal_input, "任務目標")
 
-請在理解上述背景的前提下，根據這篇 SEO 文章的任務目標進行主題發想。
-任務目標：{p2_goal}
+        prompt2 = f"""以下是目前的 PROJECT PACKET（你必須只依賴封包作答）：
 
-請產出 10–20 個可操作的主題方向（Topic Clusters），並以表格呈現：
+{project_packet_val}
+
+【任務】
+1) 依據封包的 PROJECT LOG + RAW SOURCE 背景，根據我提供的 SEO 任務目標產出 10–20 個可操作的主題方向（Topic Clusters），並以表格呈現：
 | 主題方向 | 關鍵字類型 | 搜尋意圖類型 | 註解 |
 
-本步驟僅需輸出主題表格，無須更新會議紀錄。"""
+2) 你必須更新封包：在 PROJECT LOG 中填入「SEO 任務目標」。
+
+【硬性規則】
+- 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+- RAW SOURCE 區塊必須逐字原封不動回傳，不得改寫/摘要/重排/刪字。
+
+SEO 任務目標：{p2_goal}
+"""
         st.code(prompt2, language="markdown")
-    
-    # 底部導航按鈕
+
     st.divider()
-    st.button("👉 前往下一步：Step 3 (關鍵字候選)", on_click=go_to_step, args=(2,), type="primary")
+    st.button("👉 前往下一步：Step 3", on_click=go_to_step, args=(2,), type="primary")
 
 # ------------------------------------------
-# Step 3 頁面
+# Step 3
 # ------------------------------------------
 elif selected_step == STEPS[2]:
     st.markdown('<div class="main-header">✅ Step 3：關鍵字候選清單 (Pre-GKP)</div>', unsafe_allow_html=True)
-    st.caption("目標：將發想出的主題，轉化為可以丟進 Google Keyword Planner 的格式。")
-    
+    st.caption("目標：把 Topic 轉成可丟進 GKP 的關鍵字清單。這步通常不必更新封包。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p3_input = st.text_area("Step 2 產出的主題清單", height=200, placeholder="貼上 AI 剛剛產生的主題方向/Topic 清單...", key="s3_input")
-        
+        st.markdown('<div class="sub-header">📥 輸入</div>', unsafe_allow_html=True)
+        p3_topics = st.text_area("Step 2 產出的主題清單 / Topic Clusters", height=220, placeholder="貼上 Step2 的表格或主題清單...", key="s3_topics")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p3_list = get_value(p3_input, "主題清單")
-        prompt3 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
+        topics_val = get_value(p3_topics, "主題清單")
 
-請根據以下主題/Topic 清單，產出關鍵字候選清單，用於丟進 Google 關鍵字規劃工具 (GKP)。
-主題清單：{p3_list}
+        prompt3 = f"""以下是目前的 PROJECT PACKET（供背景，不要求更新封包也可）：
+
+{project_packet_val}
+
+請根據以下主題/Topic 清單，產出關鍵字候選清單，用於丟進 Google Keyword Planner (GKP)：
+
+主題清單：
+{topics_val}
 
 請**嚴格**依照以下格式輸出（GKP 專用格式）：
-1. 純文字清單，**關鍵字之間請用「英文逗號 (,)」分隔**。
-2. 不要編號、不要項目符號。
-3. 每 10 個關鍵字一組，組與組之間空一行。
-4. 務必包含「最短的核心大字」（Seed Keywords）與長尾詞。
-
-本步驟無須更新會議紀錄。"""
+1) 純文字清單，關鍵字之間用英文逗號 (,) 分隔
+2) 不要編號、不要項目符號
+3) 每 10 個關鍵字一組，組與組之間空一行
+4) 務必包含 Seed Keywords + 長尾詞
+"""
         st.code(prompt3, language="markdown")
-    
-    # 底部導航按鈕
+
     st.divider()
-    st.button("👉 前往下一步：Step 4 (GKP 決策)", on_click=go_to_step, args=(3,), type="primary")
+    st.button("👉 前往下一步：Step 4", on_click=go_to_step, args=(3,), type="primary")
 
 # ------------------------------------------
-# Step 4 頁面
+# Step 4
 # ------------------------------------------
 elif selected_step == STEPS[3]:
-    st.markdown('<div class="main-header">✅ Step 4：GKP 數據決策 (Post-GKP)</div>', unsafe_allow_html=True)
-    st.caption("目標：這一步最重要。請根據真實數據（流量/競爭度）來鎖定核心關鍵字。")
-    
+    st.markdown('<div class="main-header">✅ Step 4：GKP 數據決策 (Post-GKP)（寫入封包）</div>', unsafe_allow_html=True)
+    st.caption("目標：用真實數據決定 Primary/Secondary/Supporting，並寫回封包 STRATEGY LOG。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p4_input = st.text_area("GKP 輸出數據", height=300, placeholder="直接貼上 GKP 的 CSV 內容，或複製表格數據...", key="s4_input")
-        
+        st.markdown('<div class="sub-header">📥 輸入</div>', unsafe_allow_html=True)
+        p4_data = st.text_area("GKP 輸出數據（貼表格/CSV文字）", height=320, placeholder="直接貼上 GKP 表格或 CSV 文字...", key="s4_gkp")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p4_data = get_value(p4_input, "GKP 輸出資料")
-        
-        prompt4 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
+        gkp_val = get_value(p4_data, "GKP 輸出資料")
 
-請根據以下 GKP 數據，決定本篇 SEO 文章的關鍵字策略，並更新會議紀錄。
+        prompt4 = f"""以下是目前的 PROJECT PACKET：
+
+{project_packet_val}
+
+請根據以下 GKP 數據，決定關鍵字策略，並更新封包 STRATEGY LOG（Primary/Secondary/Supporting）。
+
 GKP 數據：
-{p4_data}
+{gkp_val}
 
-請依照下列格式輸出分析：
-1. 核心關鍵字 (Primary) - 含數據與理由
-2. 次要關鍵字 (Secondary) - 含用途
-3. 補充關鍵字 (Supporting)
-4. 策略邏輯說明 (流量 vs 競爭度取捨)
-5. 後續 SERP 分析建議
+請輸出分析：
+1) Primary Keyword（含數據與理由）
+2) Secondary Keywords（含用途）
+3) Supporting Keywords
+4) 策略邏輯說明（流量 vs 競爭度取捨）
+5) 後續 SERP 分析建議（帶出你要看什麼）
 
-⸻
-**【輸出格式強制要求：Markdown Code Block】**
-
-請務必將「更新後的完整會議紀錄」獨立輸出在一個 **Markdown 代碼區塊** 中，格式必須如下所示：
-
-```markdown
-【會議紀錄】
-[一] 產品 / 計畫摘要 (保留或修正)
-...
-
-[二] 關鍵字與搜尋意圖 (請大幅更新此處，列出具體關鍵字策略)
-...
-
-[三] 最終大綱
-- 尚未產出，待大綱步驟更新
-```
-
-請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
+【硬性規則】
+- 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+- RAW SOURCE 區塊必須逐字原封不動回傳。
+"""
         st.code(prompt4, language="markdown")
-    
-    # 底部導航按鈕
+
     st.divider()
-    st.button("👉 前往下一步：Step 5 (SERP 研究)", on_click=go_to_step, args=(4,), type="primary")
+    st.button("👉 前往下一步：Step 5", on_click=go_to_step, args=(4,), type="primary")
 
 # ------------------------------------------
-# Step 5 頁面
-# ------------------------------------------
-# ------------------------------------------
-# Step 5：搜尋意圖深層研究（SERP + Deep Intent）
+# Step 5
 # ------------------------------------------
 elif selected_step == STEPS[4]:
-    st.markdown('<div class="main-header">✅ Step 5：搜尋意圖深層研究（SERP + Deep Intent）</div>', unsafe_allow_html=True)
-    st.caption("目標：一次完成 SERP 顯性意圖 + 隱性意圖 + 情境意圖 + 深層意圖 + 需求生成意圖，作為 Step 6 標題策略的基礎。")
+    st.markdown('<div class="main-header">✅ Step 5：搜尋意圖 Deep Research（建議寫入封包）</div>', unsafe_allow_html=True)
+    st.caption("目標：SERP 真實戰況 + 深層意圖洞察。建議把 Winning Angle 與洞察摘要寫回封包 STRATEGY LOG。")
 
     col1, col2 = st.columns([1, 1])
 
-    # ---- 左欄：輸入 ----
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p5_input = st.text_area(
-            "Step 4 選定的核心關鍵字",
-            height=200,
-            key="s5_input",
-            placeholder="例如：\nB群 什麼時候吃\nB群 空腹\n上班族 疲勞 補充品"
+        st.markdown('<div class="sub-header">📥 輸入</div>', unsafe_allow_html=True)
+        p5_keywords = st.text_area(
+            "核心關鍵字（可貼 Primary + 重要 Secondary）",
+            height=180,
+            placeholder="例如：\nB群 什麼時候吃\nB群 空腹\n上班族 疲勞 補充品",
+            key="s5_kw"
         )
 
-    # ---- 右欄：Prompt ----
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p5_keywords = get_value(p5_input, "核心關鍵字")
+        kw_val = get_value(p5_keywords, "核心關鍵字")
 
-        # 修改後的 Step 5 Prompt (修正版：強調 Standard Search)
-        prompt5 = f"""以下是目前專案的會議紀錄（僅供背景參考）：
-{meeting_log_val}
+        prompt5 = f"""以下是目前的 PROJECT PACKET：
 
-請針對以下「核心關鍵字」執行 Deep Research (深度聯網研究)：
-關鍵字：{p5_keywords}
+{project_packet_val}
 
-【重要指令：必須使用瀏覽/搜索工具】
-1. 請使用標準 Google Search 功能（Browsing）。
-2. **請以「觀察者」的角度分析 SERP，而不是「學習者」。**
-3. 請不要憑空模擬！請務必使用你的瀏覽工具，實際搜索 Google 目前針對該關鍵字的 SERP（搜尋結果頁），閱讀前 10-20 名的標題與內容摘要。
+請針對以下「核心關鍵字」執行 Deep Research（需實際搜索 SERP 前 10–20 名）：
+關鍵字：{kw_val}
 
-本步驟的目標是找出「真實的競爭現況」與「尚未被滿足的缺口」。
-
-請依以下五大區塊輸出：
-
-------------------------------------------------------------
+請依六大區塊輸出：
 【一】SERP 真實戰況分析（Explicit Intent）
-請基於你剛剛搜索到的即時結果：
-- **當前排名特徵**：目前排在前三名的文章類型是什麼？（是長文、清單、還是影片？）
-- **同質化災區**：大家的標題或內容都在重複什麼？（這是我們要避開的紅海）
-- **顯性問題列表**：使用者明確在找什麼答案？
-
-------------------------------------------------------------
 【二】SERP 隱性意圖（Implicit Intent）
-從搜尋結果中推論使用者的「焦慮」與「動機」：
-- 為什麼現有的內容可能還不夠好？
-- 使用者點進去前幾名結果後，可能還會帶著什麼疑問離開？
-- 潛台詞是什麼？（例如搜尋「便宜筆電」，潛台詞是「但我怕買到爛貨」）
-
-------------------------------------------------------------
 【三】情境化意圖（Contextual Intent）
-請依 4 種情境維度推導：
-1. 身份（Persona）：誰在搜？
-2. 場景（Context）：在什麼情況下搜？
-3. 心理狀態（Mood）：急迫還是閒逛？
-4. 任務階段（Journey）：剛開始做功課還是準備刷卡？
+【四】未被滿足的深層意圖（差異化切入點）
+【五】需求生成式意圖（Demand-Gen）
+【六】意圖全景摘要（5–7 主軸意圖 + Winning Angle）
 
-------------------------------------------------------------
-【四】Deep Research 洞察：未被滿足的深層意圖
-結合你對該領域的專業知識 + 剛剛看到的 SERP 缺口：
-- 競爭對手都忽略了哪個關鍵維度？
-- 有沒有哪個風險是大家沒警告使用者的？
-- **差異化切入點**：我們要如何切入才能「降維打擊」現有的前十名？
+【封包更新要求（建議執行）】
+- 請把「SERP/Intent 洞察摘要（Winning Angle）」與「差異化切入點」寫回封包 STRATEGY LOG。
 
-------------------------------------------------------------
-【五】需求生成式意圖（Demand-Gen Intent）
-請提出我們可以「教育市場」的新觀點：
-- 創造一個新的比較標準（重定義問題）。
-- 提出一個反直覺的觀點。
-
-------------------------------------------------------------
-【六】意圖全景摘要（Intent Panorama）
-請將上述分析收斂成 5–7 個「主軸意圖」，並標註哪一個是我們的「勝負手（Winning Angle）」。
+【硬性規則】
+- 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+- RAW SOURCE 區塊必須逐字原封不動回傳。
 """
         st.code(prompt5, language="markdown")
 
-    # ---- 底部導航 ----
     st.divider()
-    st.button("👉 前往下一步：Step 6 (標題生成)", on_click=go_to_step, args=(5,), type="primary")
-
+    st.button("👉 前往下一步：Step 6", on_click=go_to_step, args=(5,), type="primary")
 
 # ------------------------------------------
-# Step 6 頁面
+# Step 6
 # ------------------------------------------
 elif selected_step == STEPS[5]:
-    st.markdown('<div class="main-header">✅ Step 6：文章標題生成</div>', unsafe_allow_html=True)
-    
+    st.markdown('<div class="main-header">✅ Step 6：文章標題生成（寫入封包：Backlog/文章卡）</div>', unsafe_allow_html=True)
+    st.caption("目標：產出標題池（Backlog）+ 建議分群與寫作順序；必要時建立多張文章卡。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p6_input = st.text_area("Step 5 意圖分析結果", height=200, key="s6_input")
-        
+        st.markdown('<div class="sub-header">📥 輸入</div>', unsafe_allow_html=True)
+        p6_intent = st.text_area("Step5 的意圖分析結果（或直接依封包 Strategy Log）", height=220, key="s6_intent")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p6_intent = get_value(p6_input, "搜尋意圖結果")
-        prompt6 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
+        intent_val = get_value(p6_intent, "可留空（以封包 STRATEGY LOG 為準）")
 
-根據以下搜尋意圖分析結果，設計文章標題：
-{p6_intent}
+        prompt6 = f"""以下是目前的 PROJECT PACKET：
 
-請產出 15-20 個標題，分為：
-1. 資訊型
-2. 比較型 / 選擇型
-3. 行動導向型
+{project_packet_val}
 
-要求：融入核心關鍵字、有點擊動機、不重複。"""
+若你需要補充參考，這是額外的意圖分析內容（可忽略，以封包為主）：
+{intent_val}
+
+【任務】
+1) 產出 15–25 個文章標題，分為：
+   - 資訊型
+   - 比較/選擇型
+   - 行動導向型
+   要求：融入 Primary Keyword、有點擊動機、不重複。
+
+2) 請把標題寫入封包的 CONTENT QUEUE -> [Backlog Titles]，每行一個標題。
+
+3) 請將標題做 3–5 個 Cluster，並給「建議寫作順序」（先 pillar 後 supporting）。
+
+4) 請在封包 [Article Cards] 中，至少建立 3 張新文章卡（A01/A02/A03 或延續既有編號），每張卡先填：
+   - 文章ID
+   - 標題
+   - Primary/Secondary/Supporting（若封包已有，按 cluster 分配）
+   - Winning Angle（從封包 STRATEGY LOG 套用到各卡）
+
+【硬性規則】
+- 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+- RAW SOURCE 區塊必須逐字原封不動回傳。
+"""
         st.code(prompt6, language="markdown")
-    
-    # 底部導航按鈕
+
     st.divider()
-    st.button("👉 前往下一步：Step 7 (文章大綱)", on_click=go_to_step, args=(6,), type="primary")
+    st.button("👉 前往下一步：Step 7", on_click=go_to_step, args=(6,), type="primary")
 
 # ------------------------------------------
-# Step 7 頁面
+# Step 7
 # ------------------------------------------
 elif selected_step == STEPS[6]:
-    st.markdown('<div class="main-header">✅ Step 7：文章大綱</div>', unsafe_allow_html=True)
-    
+    st.markdown('<div class="main-header">✅ Step 7：文章大綱（更新指定文章卡）</div>', unsafe_allow_html=True)
+    st.caption("目標：只更新你指定的文章ID那張卡（避免污染其他文章）。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        p7_input = st.text_input("最終選擇的文章標題", key="s7_input")
-        
+        st.markdown('<div class="sub-header">📥 輸入</div>', unsafe_allow_html=True)
+        p7_article_id = st.text_input("要更新的文章ID（建議與側欄一致）", value=st.session_state.get("current_article_id", "A01"), key="s7_aid")
+        p7_title = st.text_input("要寫的大綱標題（可選填，若封包文章卡已有可留空）", value=st.session_state.get("current_title", ""), key="s7_title")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        p7_title = get_value(p7_input, "最終標題")
-        
-        prompt7 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
+        aid_val = get_value(p7_article_id, "A01")
+        title_val = get_value(p7_title, "（若封包該文章卡已有標題可留空）")
 
-根據最終標題產出大綱，並更新會議紀錄。
-標題：{p7_title}
+        prompt7 = f"""以下是目前的 PROJECT PACKET：
 
-要求：
-1. 結構：H1, H2 (主節點), H3 (子節點)
-2. 每個 H2 需回答明確使用者問題
-3. 附上大綱邏輯解說 (如何對應意圖)
+{project_packet_val}
 
-⸻
-**【輸出格式強制要求：Markdown Code Block】**
+【任務】
+- 請針對文章ID：{aid_val} 生成文章大綱（H1/H2/H3），並把大綱寫回封包該文章卡的「大綱（H1/H2/H3）」欄位。
+- 若我有提供標題：{title_val}，請以此為準；若未提供，請從封包該文章卡的標題欄位讀取。
 
-請務必將「更新後的完整會議紀錄」獨立輸出在一個 **Markdown 代碼區塊** 中，格式必須如下所示：
+【要求】
+1) 結構：H1, H2, H3
+2) 每個 H2 必須對應明確使用者問題（以意圖洞察對齊）
+3) 附上大綱邏輯簡述（放在該文章卡內「產出備註/連結」欄位即可）
 
-```markdown
-【會議紀錄】
-[一] 產品 / 計畫摘要 (完整版)
-...
-
-[二] 關鍵字與搜尋意圖 (完整版)
-...
-
-[三] 最終大綱 (請更新此處，包含 H1/H2/H3 結構與邏輯)
-...
-```
-
-請注意：**務必使用三個反引號 (```) 包覆會議紀錄內容，以便我直接複製。**"""
+【硬性規則】
+- 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+- RAW SOURCE 區塊必須逐字原封不動回傳。
+- 只能更新該文章ID對應的文章卡；其他文章卡內容不得更動。
+"""
         st.code(prompt7, language="markdown")
-    
-    # 底部導航按鈕
+
     st.divider()
-    st.button("👉 前往下一步：Step 8 (撰寫 + 技術 SEO)", on_click=go_to_step, args=(7,), type="primary")
+    st.button("👉 前往下一步：Step 8", on_click=go_to_step, args=(7,), type="primary")
 
 # ------------------------------------------
-# Step 8 頁面
+# Step 8
 # ------------------------------------------
 elif selected_step == STEPS[7]:
-    st.markdown('<div class="main-header">✅ Step 8：文章撰寫 + 技術 SEO</div>', unsafe_allow_html=True)
-    st.caption("目標：這是最後一步，結合所有決策進行寫作。")
-    
+    st.markdown('<div class="main-header">✅ Step 8：文章撰寫 + 技術 SEO（更新指定文章卡）</div>', unsafe_allow_html=True)
+    st.caption("目標：只依賴封包 + 指定文章卡完成寫作，並把產出寫回該卡（可攜帶續寫）。")
+
     col1, col2 = st.columns([1, 1])
+
     with col1:
-        st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-header">📥 寫作參數</div>', unsafe_allow_html=True)
+        p8_article_id = st.text_input("要撰寫的文章ID（建議與側欄一致）", value=st.session_state.get("current_article_id", "A01"), key="s8_aid")
         p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
-        p8_cta = st.text_input("CTA 文案", value="免費試用：[https://example.com](https://example.com)", key="s8_cta")
-        p8_outline = st.text_area("確認後的完整大綱", height=200, placeholder="若會議紀錄已有大綱，此處可選填...", key="s8_outline")
-        
+        p8_cta = st.text_input("CTA 文案", value="免費試用：https://example.com", key="s8_cta")
+
+        st.markdown('<div class="sub-header">（可選填）補充指示</div>', unsafe_allow_html=True)
+        p8_extra = st.text_area("補充寫作指示（例如：口吻、禁語、一定要提的段落）", height=140, key="s8_extra")
+
     with col2:
         st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
-        # 注意：使用 session_state 抓取跨頁面的變數 (因為切換頁面後，Step 7 的輸入框已消失，只能從記憶體抓)
-        p8_title_final = get_value(st.session_state.get("s7_input", ""), "最終標題(請回Step7輸入)") 
-        p8_outline_final = get_value(p8_outline, "完整大綱 (以會議紀錄為主)")
-        
-        prompt8 = f"""以下是目前專案的會議紀錄：
-{meeting_log_val}
+        aid_val = get_value(p8_article_id, "A01")
+        word_val = get_value(p8_word, "1500字")
+        cta_val = get_value(p8_cta, "CTA")
+        extra_val = get_value(p8_extra, "（無）")
 
-請根據會議紀錄撰寫文章。
-• 標題：{p8_title_final}
-• 字數：{p8_word}
-• CTA：{p8_cta}
-• 補充大綱指示：{p8_outline_final}
+        prompt8 = f"""以下是目前的 PROJECT PACKET：
 
-產出：
-1. 完整文章 (專業語氣、結構清晰)
-2. Meta Title (<60字元)
-3. Meta Description (<160字元)
-4. Schema Markup 建議"""
+{project_packet_val}
+
+【任務】
+請只依賴封包內容，撰寫文章ID：{aid_val} 的完整文章。
+- 字數：{word_val}
+- CTA：{cta_val}
+- 補充指示：{extra_val}
+
+【產出要求（寫回該文章卡）】
+請在該文章卡中更新/填入：
+1) 完整文章（可放在「產出備註/連結」欄位內，或新增「正文」欄位也可，但必須在該文章卡範圍內）
+2) Meta Title（<60字）
+3) Meta Description（<160字）
+4) Schema Markup 建議（條列）
+5) 技術 SEO 檢查清單（條列：內鏈建議、段落結構、FAQ、表格/清單使用點）
+
+【硬性規則】
+- 你必須輸出「完整最新版 PROJECT PACKET v1」於單一 Markdown code block。
+- RAW SOURCE 區塊必須逐字原封不動回傳。
+- 只能更新該文章ID對應的文章卡；其他文章卡內容不得更動。
+"""
         st.code(prompt8, language="markdown")
-    
+
     st.divider()
-    st.success("🎉 全流程結束！請確認您已保存所有產出內容。")
+    st.success("🎯 建議流程：每次只複製『最新版 Project Packet』到新對話，就能繼續寫下一篇（不怕對話變長劣化）。")
