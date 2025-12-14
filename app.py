@@ -116,19 +116,24 @@ def go_to_step(step_index: int):
         st.session_state.nav_radio = STEPS[step_index]
 
 # ==========================================
-# 4. Sidebar: Navigation + Project Packet
+# 4. Init session defaults (IMPORTANT)
+# ==========================================
+st.session_state.setdefault("nav_radio", STEPS[0])
+st.session_state.setdefault("project_packet", PROJECT_PACKET_TEMPLATE)
+st.session_state.setdefault("current_article_id", "A01")
+st.session_state.setdefault("current_title", "")
+
+# ==========================================
+# 5. Sidebar: Navigation + Project Packet
 # ==========================================
 with st.sidebar:
     st.title("⚡ SEO 戰略中控")
 
     st.subheader("📍 步驟導覽")
-    if "nav_radio" not in st.session_state:
-        st.session_state.nav_radio = STEPS[0]
-
     selected_step = st.radio(
         "選擇當前進度：",
         STEPS,
-        index=0,
+        index=STEPS.index(st.session_state.nav_radio) if st.session_state.nav_radio in STEPS else 0,
         key="nav_radio"
     )
 
@@ -136,9 +141,6 @@ with st.sidebar:
 
     st.subheader("🧳 Project Packet（輕封包）")
     st.info("封包只保存「決策與狀態」。需要時你再把原始資料於新對話重新貼上即可。")
-
-    if "project_packet" not in st.session_state:
-        st.session_state.project_packet = PROJECT_PACKET_TEMPLATE
 
     project_packet = st.text_area(
         "目前封包內容（建議保持為單一可複製區塊）",
@@ -150,19 +152,20 @@ with st.sidebar:
     st.divider()
 
     st.subheader("🧩 文章卡控制（跨步驟共用）")
-    st.session_state.current_article_id = st.text_input(
+    # ✅ 用 widget 回傳值當作目前值，不要再手動賦值回 session_state
+    current_article_id = st.text_input(
         "目前要更新的文章ID（例：A01）",
         value=st.session_state.get("current_article_id", "A01"),
         key="current_article_id"
     )
-    st.session_state.current_title = st.text_input(
+    current_title = st.text_input(
         "目前文章標題（可選填，讓 Step7/8 更穩）",
         value=st.session_state.get("current_title", ""),
         key="current_title"
     )
 
 # ==========================================
-# 5. Main
+# 6. Main
 # ==========================================
 
 # ------------------------------------------
@@ -176,7 +179,7 @@ if selected_step == STEPS[0]:
 
     with col1:
         st.markdown('<div class="sub-header">📥 輸入資料</div>', unsafe_allow_html=True)
-        st.markdown('<div class="hint">貼原始內容即可（LP/產品說明/白皮書片段）。本工具不要求把原文存進封包。</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hint">貼原始內容即可。本工具不要求把原文存進封包。</div>', unsafe_allow_html=True)
         p1_source = st.text_area(
             "原始資料（本回合用，開新對話可再貼）",
             height=320,
@@ -204,7 +207,7 @@ if selected_step == STEPS[0]:
 - 內容缺口（Information Gaps）
 - 品牌語氣/禁忌/限制條件（若未知寫「未指定」）
 
-【輸出規則（降噪版）】
+【輸出規則】
 1) 僅輸出「完整最新版 PROJECT PACKET v1 | LIGHT」於單一 Markdown code block。
 2) 除非我明確要求，禁止在 code block 外加任何額外段落。
 3) 只更新被指示的欄位；其餘封包內容保持原樣。
@@ -377,18 +380,10 @@ elif selected_step == STEPS[4]:
 請針對以下核心關鍵字做 SERP/Intent Deep Research（需實際搜索 SERP 前 10–20 名）：
 關鍵字：{kw_val}
 
-【輸出（請寫回封包 STRATEGY LOG）】
-請將結果收斂寫回這三欄：
+【寫回封包 STRATEGY LOG（請收斂成可操作決策）】
 - SERP/Intent 洞察摘要（Winning Angle）
 - 差異化切入點（降維打擊角度）
 - 排除與不做（Avoid List）
-
-【研究過程（不需寫回封包，可簡短）】
-你可以先用條列輸出：
-1) SERP 同質化點
-2) 使用者顯性/隱性問題
-3) 你的 Winning Angle（1句）
-4) 內容打法（3–5點）
 
 【輸出規則】
 - 僅輸出「完整最新版 PROJECT PACKET v1 | LIGHT」於單一 Markdown code block。
@@ -466,12 +461,12 @@ elif selected_step == STEPS[6]:
         st.markdown('<div class="sub-header">📥 指定文章</div>', unsafe_allow_html=True)
         p7_article_id = st.text_input(
             "要更新的文章ID（建議與側欄一致）",
-            value=st.session_state.get("current_article_id", "A01"),
+            value=current_article_id,
             key="s7_aid"
         )
         p7_title = st.text_input(
             "標題（可留空，若封包該文章卡已有標題）",
-            value=st.session_state.get("current_title", ""),
+            value=current_title,
             key="s7_title"
         )
         p7_source = st.text_area(
@@ -526,7 +521,7 @@ elif selected_step == STEPS[7]:
         st.markdown('<div class="sub-header">📥 寫作參數</div>', unsafe_allow_html=True)
         p8_article_id = st.text_input(
             "要撰寫的文章ID（建議與側欄一致）",
-            value=st.session_state.get("current_article_id", "A01"),
+            value=current_article_id,
             key="s8_aid"
         )
         p8_word = st.text_input("字數需求", value="1500 字", key="s8_word")
@@ -580,4 +575,4 @@ elif selected_step == STEPS[7]:
         st.code(prompt8, language="markdown")
 
     st.divider()
-    st.success("✅ 建議操作：每一步只複製最新版『Project Packet | LIGHT』到新對話，即可續寫下一篇，不靠長對話記憶。")
+    st.success("✅ 操作：每一步只複製最新版『Project Packet | LIGHT』到新對話，即可續寫下一篇，不靠長對話記憶。")
