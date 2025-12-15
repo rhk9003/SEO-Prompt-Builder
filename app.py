@@ -53,13 +53,15 @@ st.markdown(
 # ==========================================
 STEPS = [
     "Step 1: 專案摘要 (Project Log) 建立",
+    "Step 1.5: Persona/Voice 建模（寫入封包）",
     "Step 2: SEO 任務目標 → 主題發想（寫入封包）",
     "Step 3: 關鍵字候選清單 (Pre-GKP)",
     "Step 4: GKP 數據決策 (Post-GKP)（寫入封包）",
     "Step 5: 搜尋意圖 Deep Research（寫入封包）",
     "Step 6: 文章標題生成（寫入封包：Backlog/文章卡）",
     "Step 7: 文章大綱（更新指定文章卡）",
-    "Step 8: 文章撰寫 + 技術 SEO（更新指定文章卡）"
+    "Step 8: 文章撰寫 + 技術 SEO（更新指定文章卡）",
+    "Step 9: 改稿（Revision）+ 變更紀錄（寫入封包）",
 ]
 
 PROJECT_PACKET_TEMPLATE = """【PROJECT PACKET v1 | LIGHT】
@@ -79,6 +81,25 @@ PROJECT_PACKET_TEMPLATE = """【PROJECT PACKET v1 | LIGHT】
 - SEO 任務目標（必填）：
 - 品牌語氣/禁忌/限制條件（必填，未知可寫「未指定」）：
 === [/PROJECT LOG] ===
+
+=== [VOICE CONTEXT | EDITABLE] ===
+[PERSONA LOG]
+- 作者世界觀一句話：
+- 對讀者的定位（上對下/並肩/挑釁/對話）：
+- 核心信念/價值觀（3–7條）：
+- 動機邊界（他為什麼寫、他不做什麼）：
+- 允許的模糊與留白（哪些可以不講死）：
+- 禁語/禁套路（含理由）：
+
+[VOICE SPEC]
+- tone_mix（%）：冷靜__ / 犀利__ / 幽默__ / 溫度__
+- sentence_rhythm：短句比例__%；每段__–__行；轉折頻率__
+- stance_rules：如何下結論/如何留白/如何反問
+- lexical_rules：常用詞/避免詞/禁詞
+- structure_rules：常用推理順序（例：現象→對照→推論→選項）
+- do_not：絕對禁止事項
+- sample_lines（<=5句，每句<=25字）：
+=== [/VOICE CONTEXT] ===
 
 === [STRATEGY LOG | EDITABLE] ===
 - Primary Keyword（含GKP數據與理由）：
@@ -104,6 +125,16 @@ PROJECT_PACKET_TEMPLATE = """【PROJECT PACKET v1 | LIGHT】
   - Meta Title/Meta Desc/Schema：
   - 產出備註/連結：
 === [/CONTENT QUEUE] ===
+
+=== [REVISION LOG | EDITABLE] ===
+- 本次改稿文章ID：
+- 客戶回饋摘要（1–5點）：
+- 修改清單 Must / Should / Could：
+- 已採納（含理由摘要）：
+- 未採納（含理由摘要）：
+- 版本紀錄（v1→v2 差異一句話）：
+- 需要同步更新 VOICE CONTEXT 嗎？（是/否；若是，列出更新條款）：
+=== [/REVISION LOG] ===
 """
 
 def get_value(input_val, placeholder_text):
@@ -164,7 +195,7 @@ with st.sidebar:
     )
 
 # ==========================================
-# 6. Prompt building blocks (重要：輸出分層)
+# 6. Prompt building blocks
 # ==========================================
 def state_reference_block(packet: str) -> str:
     return f"""【狀態參考（非輸出對象）】
@@ -243,12 +274,119 @@ if selected_step == STEPS[0]:
         st.code(prompt1, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 2", on_click=go_to_step, args=(1,), type="primary")
+    st.button("👉 前往下一步：Step 1.5", on_click=go_to_step, args=(1,), type="primary")
+
+# ------------------------------------------
+# Step 1.5
+# ------------------------------------------
+elif selected_step == STEPS[1]:
+    st.markdown('<div class="main-header">✅ Step 1.5：Persona/Voice 建模（寫入封包）</div>', unsafe_allow_html=True)
+    st.caption("目標：同時使用『樣本文本』＋『你的筆記』，建立 PERSONA LOG + VOICE SPEC，寫入封包（不存樣本文）。")
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.markdown('<div class="sub-header">📥 輸入：樣本文本 + 你的筆記</div>', unsafe_allow_html=True)
+
+        uploaded_files = st.file_uploader(
+            "上傳這個人的過去文章/貼文（txt / md）可多檔",
+            type=["txt", "md"],
+            accept_multiple_files=True,
+            key="s15_files"
+        )
+
+        s15_manual_text = st.text_area(
+            "或直接貼樣本文本（可留空，與上傳二選一或同時用）",
+            height=180,
+            placeholder="貼上 1–3 篇代表性的文字…",
+            key="s15_paste"
+        )
+
+        s15_notes = st.text_area(
+            "📝 你的筆記（你對這個人的理解/背景/價值觀/禁忌/關係定位）",
+            height=220,
+            placeholder="例：他很討厭雞湯；他寫作是要推動產業改革；他跟讀者是並肩討論而不是教學…",
+            key="s15_notes"
+        )
+
+        file_texts = []
+        if uploaded_files:
+            for f in uploaded_files:
+                try:
+                    content = f.read().decode("utf-8", errors="ignore")
+                except Exception:
+                    content = ""
+                if content.strip():
+                    file_texts.append(f"=== [FILE: {f.name}] ===\n{content.strip()}\n=== [/FILE] ===")
+        samples_combined = "\n\n".join(file_texts)
+
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
+
+        samples_val = get_value(samples_combined, "（未上傳）")
+        paste_val = get_value(s15_manual_text, "（未貼）")
+        notes_val = get_value(s15_notes, "（未填）")
+
+        prompt15 = f"""【本次主要產出】
+請先輸出「Persona Brief（可讀）」與「Voice Spec（可執行）」。（不是封包、不是 code block）
+
+{no_codeblock_main_output_rules()}
+
+【重要：資料分層規則】
+- 「樣本文本」= 證據層，只能從這裡歸納語感特徵與慣用句法。
+- 「我的筆記」= 補充語境層，可能含推測/背景；你可以用來校準 Persona，但若與樣本衝突，需明確指出衝突並提出兩版。
+- 禁止把樣本文本原文塞進封包。
+
+【主要產出格式】
+A) Persona Brief（給人與AI理解世界觀）
+1. 作者世界觀一句話
+2. 對讀者的定位（上對下/並肩/挑釁/對話）
+3. 核心信念/價值觀（3–7條，句型化）
+4. 動機邊界（他為什麼寫、他不做什麼）
+5. 允許的模糊與留白（哪些可以不講死）
+6. 禁語/禁套路（含理由）
+
+B) Voice Spec（給AI執行，務必可操作）
+- tone_mix（%）：冷靜__ / 犀利__ / 幽默__ / 溫度__
+- sentence_rhythm：短句比例__%；每段__–__行；轉折頻率__
+- stance_rules：如何下結論/如何留白/如何反問
+- lexical_rules：常用詞/避免詞/禁詞
+- structure_rules：常用推理順序（例：現象→對照→推論→選項）
+- do_not：絕對禁止事項
+- sample_lines：<=5句，每句<=25字（模仿用，非引用原文）
+
+────────────────────
+
+{state_reference_block(project_packet_val)}
+
+【樣本文本（證據層）｜上傳】
+{samples_val}
+
+【樣本文本（證據層）｜直接貼上】
+{paste_val}
+
+【我的筆記（補充語境層）】
+{notes_val}
+
+────────────────────
+
+【狀態更新任務】
+請把 A) 的 Persona 要點（精簡版）＋ B) 的 Voice Spec 寫回封包的：
+=== [VOICE CONTEXT | EDITABLE] ===
+[PERSONA LOG] 與 [VOICE SPEC]
+其他區塊不得更動。
+
+{state_output_rules()}
+"""
+        st.code(prompt15, language="markdown")
+
+    st.divider()
+    st.button("👉 前往下一步：Step 2", on_click=go_to_step, args=(2,), type="primary")
 
 # ------------------------------------------
 # Step 2
 # ------------------------------------------
-elif selected_step == STEPS[1]:
+elif selected_step == STEPS[2]:
     st.markdown('<div class="main-header">✅ Step 2：SEO 任務目標 → 主題發想（寫入封包）</div>', unsafe_allow_html=True)
     st.caption("目標：先產出主題表格（主要產出），再把 SEO 任務目標寫回封包。")
 
@@ -280,7 +418,7 @@ elif selected_step == STEPS[1]:
 {state_reference_block(project_packet_val)}
 
 【任務】
-1) 以上述封包 PROJECT LOG 為前提，根據我提供的 SEO 任務目標產出 10–20 個 Topic Clusters（用表格）。
+1) 以上述封包 PROJECT LOG + VOICE CONTEXT 為前提，根據我提供的 SEO 任務目標產出 10–20 個 Topic Clusters（用表格）。
 2) 把「SEO 任務目標」寫回封包 PROJECT LOG 對應欄位。
 
 SEO 任務目標：{goal_val}
@@ -290,12 +428,12 @@ SEO 任務目標：{goal_val}
         st.code(prompt2, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 3", on_click=go_to_step, args=(2,), type="primary")
+    st.button("👉 前往下一步：Step 3", on_click=go_to_step, args=(3,), type="primary")
 
 # ------------------------------------------
 # Step 3
 # ------------------------------------------
-elif selected_step == STEPS[2]:
+elif selected_step == STEPS[3]:
     st.markdown('<div class="main-header">✅ Step 3：關鍵字候選清單 (Pre-GKP)</div>', unsafe_allow_html=True)
     st.caption("目標：輸出 GKP 可用的逗號清單（主要產出），不更新封包。")
 
@@ -335,12 +473,12 @@ elif selected_step == STEPS[2]:
         st.code(prompt3, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 4", on_click=go_to_step, args=(3,), type="primary")
+    st.button("👉 前往下一步：Step 4", on_click=go_to_step, args=(4,), type="primary")
 
 # ------------------------------------------
 # Step 4
 # ------------------------------------------
-elif selected_step == STEPS[3]:
+elif selected_step == STEPS[4]:
     st.markdown('<div class="main-header">✅ Step 4：GKP 數據決策 (Post-GKP)（寫入封包）</div>', unsafe_allow_html=True)
     st.caption("目標：先輸出決策分析（主要產出），再更新封包 STRATEGY LOG。")
 
@@ -388,12 +526,12 @@ GKP 數據：
         st.code(prompt4, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 5", on_click=go_to_step, args=(4,), type="primary")
+    st.button("👉 前往下一步：Step 5", on_click=go_to_step, args=(5,), type="primary")
 
 # ------------------------------------------
 # Step 5
 # ------------------------------------------
-elif selected_step == STEPS[4]:
+elif selected_step == STEPS[5]:
     st.markdown('<div class="main-header">✅ Step 5：搜尋意圖 Deep Research（寫入封包）</div>', unsafe_allow_html=True)
     st.caption("目標：先輸出 SERP/Intent 洞察（主要產出），再把 Winning Angle 等收斂寫回封包。")
 
@@ -449,12 +587,12 @@ F) Intent Panorama（5–7 主軸 + Winning Angle）
         st.code(prompt5, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 6", on_click=go_to_step, args=(5,), type="primary")
+    st.button("👉 前往下一步：Step 6", on_click=go_to_step, args=(6,), type="primary")
 
 # ------------------------------------------
 # Step 6
 # ------------------------------------------
-elif selected_step == STEPS[5]:
+elif selected_step == STEPS[6]:
     st.markdown('<div class="main-header">✅ Step 6：文章標題生成（寫入封包：Backlog/文章卡）</div>', unsafe_allow_html=True)
     st.caption("目標：先輸出標題清單+分群（主要產出），再把 Backlog+文章卡寫回封包。")
 
@@ -483,6 +621,7 @@ elif selected_step == STEPS[5]:
 2) 將標題分成 3–5 個 Cluster
 3) 提供建議寫作順序（先 pillar 後 supporting）
 4) 建議每篇對應的 Primary/Secondary/Supporting（可粗分）
+5) 必須遵守 VOICE CONTEXT（PERSONA LOG + VOICE SPEC）
 
 ────────────────────
 
@@ -505,12 +644,12 @@ elif selected_step == STEPS[5]:
         st.code(prompt6, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 7", on_click=go_to_step, args=(6,), type="primary")
+    st.button("👉 前往下一步：Step 7", on_click=go_to_step, args=(7,), type="primary")
 
 # ------------------------------------------
 # Step 7
 # ------------------------------------------
-elif selected_step == STEPS[6]:
+elif selected_step == STEPS[7]:
     st.markdown('<div class="main-header">✅ Step 7：文章大綱（更新指定文章卡）</div>', unsafe_allow_html=True)
     st.caption("目標：先輸出大綱（主要產出），再只更新指定文章卡的大綱欄位。")
 
@@ -551,6 +690,7 @@ elif selected_step == STEPS[6]:
 - 若我提供標題：{title_val}，以此為準；若未提供，請使用封包該文章卡的標題。
 - 結構：H1/H2/H3
 - 每個 H2 必須對應明確使用者問題（對齊 STRATEGY LOG 的意圖洞察）
+- 必須遵守 VOICE CONTEXT（PERSONA LOG + VOICE SPEC）
 - 另外輸出一小段「大綱邏輯解說」（約 5–8 行）
 
 ────────────────────
@@ -574,12 +714,12 @@ elif selected_step == STEPS[6]:
         st.code(prompt7, language="markdown")
 
     st.divider()
-    st.button("👉 前往下一步：Step 8", on_click=go_to_step, args=(7,), type="primary")
+    st.button("👉 前往下一步：Step 8", on_click=go_to_step, args=(8,), type="primary")
 
 # ------------------------------------------
-# Step 8 (UPDATED: 正文不寫入封包)
+# Step 8
 # ------------------------------------------
-elif selected_step == STEPS[7]:
+elif selected_step == STEPS[8]:
     st.markdown('<div class="main-header">✅ Step 8：文章撰寫 + 技術 SEO（更新指定文章卡）</div>', unsafe_allow_html=True)
     st.caption("目標：先輸出正文（主要產出），封包只存 meta/schema/checklist/摘要與後續行動（不存正文）。")
 
@@ -620,6 +760,10 @@ elif selected_step == STEPS[7]:
 注意：正文是主要產出，不是封包內容。
 
 {no_codeblock_main_output_rules()}
+
+【硬性規則：必須遵守 VOICE CONTEXT】
+- 你必須同時遵守 PERSONA LOG 與 VOICE SPEC。
+- 若我的補充指示與 VOICE CONTEXT 衝突，請先指出衝突點，再提供兩種改法（偏向保留 Persona / 偏向滿足指示）。
 
 【寫作任務】
 - 文章ID：{aid_val}
@@ -665,4 +809,124 @@ elif selected_step == STEPS[7]:
         st.code(prompt8, language="markdown")
 
     st.divider()
-    st.success("✅ Step 8 已改：封包不存正文，只存 meta/schema/checklist/摘要與可續寫索引。")
+    st.success("✅ Step 8：封包不存正文，只存 meta/schema/checklist/摘要與可續寫索引。")
+    st.button("👉 前往下一步：Step 9", on_click=go_to_step, args=(9,), type="primary")
+
+# ------------------------------------------
+# Step 9：Revision
+# ------------------------------------------
+elif selected_step == STEPS[9]:
+    st.markdown('<div class="main-header">✅ Step 9：改稿（Revision）+ 變更紀錄（寫入封包）</div>', unsafe_allow_html=True)
+    st.caption("目標：輸出改後全文（主要產出），封包只存：變更決策/採納與拒絕/版本差異/必要時更新 VOICE CONTEXT（不存全文）。")
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.markdown('<div class="sub-header">📥 改稿輸入</div>', unsafe_allow_html=True)
+
+        r_article_id = st.text_input(
+            "改稿文章ID（建議與側欄一致）",
+            value=current_article_id,
+            key="r_aid"
+        )
+
+        r_original = st.text_area(
+            "原文（本回合輸入，不存封包）",
+            height=180,
+            placeholder="貼上要改的全文（v1）...",
+            key="r_original"
+        )
+
+        r_client = st.text_area(
+            "客戶修改需求/回饋（可貼訊息或文件段落）",
+            height=160,
+            placeholder="例：語氣太硬、想更收斂；段落順序要換；加上某段案例；刪掉某句話...",
+            key="r_client"
+        )
+
+        r_editor = st.text_area(
+            "你的總編輯指令（你希望怎麼改、取捨邏輯）",
+            height=140,
+            placeholder="例：保留 Persona 的挑釁，但降低攻擊性；把結論前置；保留數據段落但改口吻...",
+            key="r_editor"
+        )
+
+        r_constraints = st.text_area(
+            "額外限制（可選）",
+            height=100,
+            placeholder="例：不得涉及醫療宣稱；不得提到競品；保留原 H2；字數 1200–1500...",
+            key="r_constraints"
+        )
+
+    with col2:
+        st.markdown('<div class="sub-header">📤 複製 Prompt</div>', unsafe_allow_html=True)
+
+        aid_val = get_value(r_article_id, "A01")
+        original_val = get_value(r_original, "原文貼在這裡")
+        client_val = get_value(r_client, "（無）")
+        editor_val = get_value(r_editor, "（無）")
+        constraints_val = get_value(r_constraints, "（無）")
+
+        prompt9 = f"""【本次主要產出】
+請輸出「改後文章全文（v2）」+「變更摘要（Diff Summary）」+「未採納清單（含理由）」。（不是封包、不是 code block）
+
+{no_codeblock_main_output_rules()}
+
+【硬性規則：VOICE CONTEXT 優先】
+- 你必須同時遵守 PERSONA LOG 與 VOICE SPEC。
+- 若客戶修改需求與 VOICE CONTEXT 衝突，你必須：
+  1) 明確指出衝突點
+  2) 提出兩個版本方案：
+     - 方案A：最大化保留 Persona/Voice
+     - 方案B：最大化滿足客戶需求（並說明代價）
+  3) 預設先輸出「方案A」的改後全文；方案B 只需提供差異要點（不必全文）
+
+【改稿任務】
+- 文章ID：{aid_val}
+
+【你要輸出的結構】
+1) 改後全文（v2）
+2) Diff Summary（條列，分 Must / Should / Could）
+3) 未採納清單（條列：原因=與 Persona/Voice 衝突 / 不利於 SEO 目標 / 缺乏證據 / 風險等）
+4) 若你判斷需要更新 VOICE CONTEXT：請提出「更新條款草案」（只列規則，不要寫長文）
+
+────────────────────
+
+{state_reference_block(project_packet_val)}
+
+【原文（v1｜本回合輸入，不要復誦原文，不要塞進封包）】
+{original_val}
+
+【客戶回饋（本回合輸入）】
+{client_val}
+
+【總編輯指令（本回合輸入）】
+{editor_val}
+
+【額外限制（可選）】
+{constraints_val}
+
+────────────────────
+
+【狀態更新任務（極重要：不得把全文寫入封包）】
+請只更新封包的：
+=== [REVISION LOG | EDITABLE] ===
+
+填入：
+- 本次改稿文章ID：{aid_val}
+- 客戶回饋摘要（1–5點）
+- 修改清單 Must / Should / Could
+- 已採納（含理由摘要）
+- 未採納（含理由摘要）
+- 版本紀錄（v1→v2 差異一句話）
+- 需要同步更新 VOICE CONTEXT 嗎？（是/否；若是，列出更新條款）
+
+【硬性禁止條款】
+- 你不得把任何「改後全文段落」寫入 Project Packet。
+
+{state_output_rules()}
+"""
+        st.code(prompt9, language="markdown")
+
+    st.divider()
+    st.success("✅ Step 9：改稿全文只在主要產出；封包只存變更決策與必要的語感規則更新。")
